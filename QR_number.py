@@ -177,11 +177,14 @@ def main():
         '/System/Library/Fonts/Supplemental/Times New Roman.ttf',
         '/System/Library/Fonts/Supplemental/Arial.ttf',
         '/System/Library/Fonts/Supplemental/Courier New.ttf',
-        '/System/Library/Fonts/Supplemental/Trebuchet MS.ttf'
+        '/System/Library/Fonts/Supplemental/Trebuchet MS.ttf',
+        '/Users/zhangjian/Library/Fonts/MSYHL.TTC',
+        '/System/Library/Fonts/PingFang.ttc',
+        '/System/Library/Fonts/Courier.dfont'
     ]
 
-    dir = 'fifty_thousand/output_allfont_angle5/'
-    for i in tqdm.tqdm(range(50000)):
+    dir = './output/'
+    for i in tqdm.tqdm(range(100000)):
         length = random.randint(5, 15)
         text = generate_random_number_string(length)
         # 获取当前时间戳（精确到秒）
