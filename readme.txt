@@ -5,3 +5,5 @@
     ../pseudo_ocr_data_xuehao/mnist_images_checked 是人工检查后的MINIST数据集
     .。/pseudo_ocr_data_xuehao/gen_mnist_data 是生成的手写伪数据
 4. check_MNIST_data.py 是数据格式转换，将原有格式转换成方便人观察的图片。
+
+5. gen_scratch.py 是对单个字符生成涂抹效果。

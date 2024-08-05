@@ -131,6 +131,7 @@ import string
 import os
 import time
 import tqdm
+from gen_scratch import apply_scratches
 
 
 # 生成一个随机数字串，长度在5到15之间
@@ -138,11 +139,14 @@ def generate_random_number_string(length):
     return ''.join(random.choices(string.digits, k=length))
 
 
-def generate_image(text, fonts, output_path):
+def generate_image(text, fonts, dir):
     num_digits = len(text)
-    cell_width = 52
+    #cell_width = 52
+    cell_width = 40
     width = cell_width * num_digits
-    height = 82
+    height = 64
+    #height = 82
+    list_of_text = list(text)
 
     # 创建一个背景图像
     image = Image.new('RGB', (width, height), color='white')
@@ -157,14 +161,23 @@ def generate_image(text, fonts, output_path):
     for i, number in enumerate(text):
         digit_image = Image.new('L', (cell_width, height), color=255)
         digit_draw = ImageDraw.Draw(digit_image)
-        digit_draw.text((cell_width // 4, height // 4), number, font=font, fill=0)
 
-        scaled_w = int(cell_width * random.uniform(0.7, 1.0))
-        scaled_h = int(height * random.uniform(0.7, 1.0))
+        digit_draw.text((cell_width // 4, height // 10), number, font=font, fill=0)
+
+        scaled_w = int(cell_width * random.uniform(0.9, 1.0))
+        scaled_h = int(height * random.uniform(0.9, 1.0))
         digit_image = digit_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
+
+        # 加入涂抹
+        if random.choice((0,1,2,3,4,5,6,7,8,9,10)) == 0:
+            digit_image = apply_scratches(digit_image)
+            # 修改标注文件
+            list_of_text[i] = 'x'
+
 
         offset_x = random.randint(0, cell_width - scaled_w)
         offset_y = random.randint(0, height - scaled_h)
+        #offset_y = max(-10,offset_y -10)
         paste_position = (i * cell_width + offset_x, offset_y)
         image.paste(digit_image, paste_position)
 
@@ -211,6 +224,9 @@ def generate_image(text, fonts, output_path):
     #larger_image.paste(image, (left_margin, top_margin))
 
     # 保存最终图像
+    timestamp = int(time.time())
+    test_new = "".join(list_of_text)
+    output_path = os.path.join(dir, f'{timestamp}_{test_new}.png')
     larger_image.save(output_path)
 
 
@@ -238,12 +254,11 @@ def main():
     dir = '../pseudo_ocr_data_xuehao/printed_xuehao/'
     os.makedirs(dir, exist_ok=True)
 
-    for i in tqdm.tqdm(range(100)):
+    for i in tqdm.tqdm(range(10000)):
         length = random.randint(5, 15)
         text = generate_random_number_string(length)
-        timestamp = int(time.time())
-        output_path = os.path.join(dir, f'{timestamp}_{text}.png')
-        generate_image(text, fonts, output_path)
+
+        generate_image(text, fonts,dir)
 
 
 if __name__ == "__main__":
