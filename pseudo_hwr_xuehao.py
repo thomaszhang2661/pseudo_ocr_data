@@ -474,15 +474,15 @@ def create_handwritten_number_image(numbers, output_path, mnist_data):
     larger_image = Image.new('L', (larger_width, larger_height), 255)
     larger_image.paste(image, (left_margin, top_margin))
 
-    random_angle = np.clip(np.random.normal(0, 5), -3, 3)
-    rotated_img = larger_image.rotate(random_angle, fillcolor=(255))
+    # random_angle = np.clip(np.random.normal(0, 5), -3, 3)
+    # rotated_img = larger_image.rotate(random_angle, fillcolor=(255))
 
     # 保存图像
     timestamp = int(time.time())
     text_new = "".join(list_of_text)
     output_file = f'{output_path}{timestamp}_{text_new}.jpg'
-    rotated_img.save(output_file)
-
+    #rotated_img.save(output_file)
+    larger_image.save(output_file)
 
 def process_image_wrapper(args):
     output_path, text, mnist_data = args
