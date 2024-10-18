@@ -226,8 +226,10 @@ def generate_image(text, fonts, dir):
     # 保存最终图像
     timestamp = int(time.time())
     test_new = "".join(list_of_text)
-    output_path = os.path.join(dir, f'{timestamp}_{test_new}.png')
-    larger_image.save(output_path)
+    # output_path = os.path.join(dir, f'{timestamp}_{test_new}.png')
+    # larger_image.save(output_path)
+    output_path = os.path.join(dir, f'{timestamp}_{test_new}.jpg')
+    larger_image.save(output_path, format='JPEG', quality=95)
 
 
 def main():
@@ -254,7 +256,7 @@ def main():
     dir = '../pseudo_ocr_data_xuehao/printed_xuehao/'
     os.makedirs(dir, exist_ok=True)
 
-    for i in tqdm.tqdm(range(10000)):
+    for i in tqdm.tqdm(range(70000)):
         length = random.randint(5, 15)
         text = generate_random_number_string(length)
 
