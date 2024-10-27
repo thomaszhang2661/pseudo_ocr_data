@@ -221,6 +221,10 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data):
         paste_position = (i * cell_width + offset_x, offset_y)
         image.paste(single_image, paste_position)
 
+    draw = ImageDraw.Draw(image)
+    underline_y = height - 5  # 下划线的位置
+    draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
+
     # 添加边距
     left_margin = 15
     right_margin = 15
@@ -257,9 +261,12 @@ if __name__ == '__main__':
         output_path = f'../../psudo_chinese_data/gen_line_print_data/'
         output_paths_and_texts.append((output_path, text))
 
-    num_processes = multiprocessing.cpu_count()
-
-    with multiprocessing.Pool(processes=num_processes) as pool:
-        results = list(tqdm(pool.imap_unordered(process_image_wrapper,
-                                                [(path, text, mnist_data) for path, text in output_paths_and_texts]),
-                            total=len(output_paths_and_texts)))
+    # num_processes = multiprocessing.cpu_count()
+    #
+    # with multiprocessing.Pool(processes=num_processes) as pool:
+    #     results = list(tqdm(pool.imap_unordered(process_image_wrapper,
+    #                                             [(path, text, mnist_data) for path, text in output_paths_and_texts]),
+    #                         total=len(output_paths_and_texts)))
+    # 单线程处理
+    for output_path, text in tqdm(output_paths_and_texts):
+        process_image_wrapper((output_path, text, mnist_data))

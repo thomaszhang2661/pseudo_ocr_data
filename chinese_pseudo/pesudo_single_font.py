@@ -59,11 +59,17 @@ output_dir = "../../pseudo_chinese_print_images"
 os.makedirs(output_dir, exist_ok=True)
 
 # 读取字符字典
-with open('chinese_data1018/char_dict', 'rb') as f:
-    char_dict = pickle.load(f)
+# with open('chinese_data1018/char_dict', 'rb') as f:
+#     char_dict = pickle.load(f)
+#
+# # 从字符字典中提取字符
+# texts = list(char_dict.keys())  # char_dict 的键是想要的字符
+with open('char_dict.txt', 'r', encoding='utf-8') as f:
+    for line in f:
+        char, code = line.strip().split('\t')  # 按制表符分割
+        char_dict[char] = int(code)  # 将编码转换为整数
 
-# 从字符字典中提取字符
-texts = list(char_dict.keys())  # char_dict 的键是想要的字符
+texts = list(char_dict.keys())
 
 def is_chinese_char(char):
     return '\u4e00' <= char <= '\u9fff'
