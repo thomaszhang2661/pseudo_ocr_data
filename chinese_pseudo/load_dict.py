@@ -62,26 +62,26 @@
 
 
 ##################################################################
-"""这部分功能为转格式，转为字典格式方便直接复制"""
-# 定义包含汉字的字符串
-#characters = "126 . （，…）；湎 /;、407瘾=夙轶踝&魅尴尬闩羁蝙蝠沐()褔[]黏咧“√”哽雳咔嚓嗒饪姊肴黝<>潢惚沓-皙,
-# 锉朦胧褶浏檐嗨嗥诙飓淇髦25熨颌颚怦嗦匮跛睑槭啬煦169箴髭嘈迥踱蹚媲摞莅搡裨橄榄笃虔岖鲨愕狩烊鳐瞌霾蜿啜馊啐疱玷莓咂3：缜嘀阱遛砣祉嗯孀跤"
-characters = "30 . （，）、；…&(,)崽/哒;嬉[]踹=筝盹橘妃薇腼"
-# 只提取汉字
-import re
-
-# 提取汉字
-chinese_characters = re.findall(r'[\u4e00-\u9fa5]', characters)
-
-# 初始化字典和编号
-char_dict = {}
-start_number = 3847
-
-# 将汉字与编号关联
-for char in chinese_characters:
-    char_dict[char] = start_number
-    start_number += 1  # 编号递增
-
-# 打印结果
-for char, code in char_dict.items():
-    print(f"{char}\t{code}")
+# """这部分功能为转格式，转为字典格式方便直接复制"""
+# # 定义包含汉字的字符串
+# #characters = "126 . （，…）；湎 /;、407瘾=夙轶踝&魅尴尬闩羁蝙蝠沐()褔[]黏咧“√”哽雳咔嚓嗒饪姊肴黝<>潢惚沓-皙,
+# # 锉朦胧褶浏檐嗨嗥诙飓淇髦25熨颌颚怦嗦匮跛睑槭啬煦169箴髭嘈迥踱蹚媲摞莅搡裨橄榄笃虔岖鲨愕狩烊鳐瞌霾蜿啜馊啐疱玷莓咂3：缜嘀阱遛砣祉嗯孀跤"
+# characters = "30 . （，）、；…&(,)崽/哒;嬉[]踹=筝盹橘妃薇腼"
+# # 只提取汉字
+# import re
+#
+# # 提取汉字
+# chinese_characters = re.findall(r'[\u4e00-\u9fa5]', characters)
+#
+# # 初始化字典和编号
+# char_dict = {}
+# start_number = 3847
+#
+# # 将汉字与编号关联
+# for char in chinese_characters:
+#     char_dict[char] = start_number
+#     start_number += 1  # 编号递增
+#
+# # 打印结果
+# for char, code in char_dict.items():
+#     print(f"{char}\t{code}")

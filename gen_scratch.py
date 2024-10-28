@@ -127,7 +127,7 @@ def draw_curve(draw, points, color, width):
 #         draw.line([(0, y), (width, y)], fill=color, width=line_width)
 
 
-def draw_horizontal_scratch(image, num_scratch_lines_max=8, line_width_range=(3, 6), color=None, angle_range=(-30, 30)):
+def draw_horizontal_scratch(image, num_scratch_lines_max=5, line_width_range=(3, 6), color=None, angle_range=(-30, 30)):
     """
     在图像上绘制划痕。
 
@@ -189,7 +189,7 @@ def apply_scratches(image, num_curves_in=9, max_curve_width=3):
     # draw_horizontal_scratch(image, num_scratch_lines_max=8, line_width_range=(2, 3))
 
     if random.choice((0,1)) == 0:
-        draw_horizontal_scratch(image, num_scratch_lines_max=8, line_width_range=(2, 3))
+        draw_horizontal_scratch(image, num_scratch_lines_max=5, line_width_range=(3, 4))
     else:
         # 应用曲线涂抹
         num_curves = random.randint(5, num_curves_in)

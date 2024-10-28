@@ -163,9 +163,16 @@ from gen_scratch import apply_scratches
 import pickle
 
 # 加载需要制作哪些汉字的字典
-with open('chinese_data1018/char_dict', 'rb') as f:
-    char_dict = pickle.load(f)
-# 从字符字典中提取字符
+# with open('chinese_data1018/char_dict', 'rb') as f:
+#     char_dict = pickle.load(f)
+# # 从字符字典中提取字符
+# dict_list = list(char_dict.keys())
+char_dict = {}
+with open('char_dict.txt', 'r', encoding='utf-8') as f:
+    for line in f:
+        char, code = line.strip().split('\t')  # 按制表符分割
+        char_dict[char] = int(code)  # 将编码转换为整数
+
 dict_list = list(char_dict.keys())
 
 def generate_random_line(length):

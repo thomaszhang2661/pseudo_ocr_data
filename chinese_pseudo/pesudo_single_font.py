@@ -9,9 +9,9 @@ from tqdm import tqdm
 
 
 # 加载需要制作哪些汉字的字典
-with open('chinese_data1018/char_dict', 'rb') as f:
-    char_dict = pickle.load(f)
-print(char_dict)
+# with open('chinese_data1018/char_dict', 'rb') as f:
+#     char_dict = pickle.load(f)
+# print(char_dict)
 
 # from fontTools.ttLib import TTFont
 #
@@ -55,7 +55,7 @@ import matplotlib.font_manager
 import pickle
 
 # 定义用于保存生成图片的输出目录
-output_dir = "../../pseudo_chinese_print_images"
+output_dir = "../../pseudo_chinese_hw_images"
 os.makedirs(output_dir, exist_ok=True)
 
 # 读取字符字典
@@ -64,6 +64,7 @@ os.makedirs(output_dir, exist_ok=True)
 #
 # # 从字符字典中提取字符
 # texts = list(char_dict.keys())  # char_dict 的键是想要的字符
+char_dict = {}
 with open('char_dict.txt', 'r', encoding='utf-8') as f:
     for line in f:
         char, code = line.strip().split('\t')  # 按制表符分割
@@ -137,7 +138,7 @@ font_size = 60
 # # 用户字体目录（请根据实际路径进行修改）
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Library/Fonts")
 # user_font_dir = os.path.expanduser("/System/Library/Fonts")
-user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected/")
+user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
 # 获取系统中已安装的字体列表
 installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=user_font_dir, fontext='ttf')
 #installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
