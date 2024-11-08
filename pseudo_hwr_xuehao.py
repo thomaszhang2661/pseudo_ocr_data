@@ -440,8 +440,8 @@ def create_handwritten_number_image(numbers, output_path, mnist_data):
         digit_image = digit_images[np.random.choice(len(digit_images))]
 
         # 调整颜色和大小
-        scaled_w = int(width / len(numbers) * random.uniform(0.85, 1.0))
-        scaled_h = int(height * random.uniform(0.85, 1.0))
+        scaled_w = int(width / len(numbers) * random.uniform(0.55, 0.75))
+        scaled_h = int(height * random.uniform(0.55, 0.75))
         digit_image = cv2.resize(digit_image, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR)
         digit_image = Image.fromarray(digit_image)
 
@@ -451,7 +451,7 @@ def create_handwritten_number_image(numbers, output_path, mnist_data):
             list_of_text[i] = 'x'
 
         offset_x = random.randint(0, width // len(numbers) - scaled_w)
-        offset_y = random.randint(0, height - scaled_h)
+        offset_y = random.randint(int(0.5 * (height - scaled_h)), height - scaled_h)
         paste_position = (i * cell_width + offset_x, offset_y)
         image.paste(digit_image, paste_position)
 
@@ -499,7 +499,7 @@ if __name__ == '__main__':
         length = random.randint(6, 14)
         text = generate_random_number_string(length)
         timestamp = int(time.time()) + i
-        output_path = f'../pseudo_ocr_data_xuehao/gen_mnist_data/'
+        output_path = f'../pseudo_ocr_data_xuehao/gen_mnist_data_241106/'
         output_paths_and_texts.append((output_path, text))
 
     num_processes = multiprocessing.cpu_count()

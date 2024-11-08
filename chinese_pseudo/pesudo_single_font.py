@@ -55,7 +55,7 @@ import matplotlib.font_manager
 import pickle
 
 # 定义用于保存生成图片的输出目录
-output_dir = "../../pseudo_chinese_hw_images"
+output_dir = "../../pseudo_chinese_images_1106"
 os.makedirs(output_dir, exist_ok=True)
 
 # 读取字符字典
@@ -76,7 +76,7 @@ def is_chinese_char(char):
     return '\u4e00' <= char <= '\u9fff'
 
 # 定义要使用的字体列表
-select_list = ["Wawati SC","Baoli SC"]
+# select_list = ["Wawati SC","Baoli SC"]
 # select_list = [
 #     "田英章硬笔楷书简体",
 #     "锐字云字库行草体",
@@ -133,12 +133,14 @@ select_list = ["Wawati SC","Baoli SC"]
 # 设置图片尺寸和字体大小
 image_width = 300
 image_height = 300
-font_size = 60
+font_size = 40
 
 # # 用户字体目录（请根据实际路径进行修改）
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Library/Fonts")
 # user_font_dir = os.path.expanduser("/System/Library/Fonts")
-user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
+#user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
+user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_1107/")
+
 # 获取系统中已安装的字体列表
 installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=user_font_dir, fontext='ttf')
 #installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
@@ -194,35 +196,25 @@ print(f"有效字体数量: {len(valid_fonts)}")
 # 遍历文本列表，为每个文本使用不同的字体生成图片并保存
 
 for font in tqdm(valid_fonts):
-        # 每10个汉字一组
-    #for idx in range(0, len(texts), 10):
-        # # 获取当前组的汉字文本
-        # text_group = ''.join(texts[idx:idx + 10])
-        #
-        # # 计算生成的图像数量（以文本中汉字的总数除以10）
-        # num_images = len(texts) // 10 + (1 if len(texts) % 10 > 0 else 0)
-        #
-        # for idx in range(num_images):
-            # 随机抽取10个汉字
-            #text_group = ''.join(random.sample(texts, min(10, len(texts))))
-            # 创建一张空白图片
         for text_group in texts:
             image = Image.new("RGB", (image_width, image_height), color="white")
             draw = ImageDraw.Draw(image)
 
             # 计算文本的大小和位置
-            text_width, text_height = draw.textsize(text_group, font=font[0])
-            text_width0, text_height_0 = draw.textsize(" ", font=font[0])
+            #text_width, text_height = draw.textsize(text_group, font=font[0])
+            #text_width0, text_height_0 = draw.textsize(" ", font=font[0])
+            text_width, text_height = font[0].getsize(text_group)
+
 
             # 调整图片尺寸以适应文本
-            image_width = text_width + 10
-            image_height = text_height + 10
+            image_width = text_width
+            image_height = text_height
             image = Image.new("RGB", (image_width, image_height), color="white")
             draw = ImageDraw.Draw(image)
 
             # 计算文本位置
             x = (image_width - text_width) / 2
-            y = (image_height - text_height) / 2 - 2
+            y = (image_height - text_height) / 2
 
             # 绘制文本
             draw.text((x, y), text_group, fill="black", font=font[0])
