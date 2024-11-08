@@ -195,7 +195,7 @@ def load_local_images(image_directory):
 
 def create_handwritten_number_image(line_chars, output_path, mnist_data):
     list_of_text = list(line_chars)
-    width = 40 * len(line_chars)
+    width = 50 * len(line_chars)
     height = 70
     image = Image.new('L', (width, height), 255)
 
@@ -222,22 +222,30 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data):
         single_image = cv2.resize(single_image, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR)
         single_image = Image.fromarray(single_image)
         # 透视变换
-        single_image = apply_perspective_transform(single_image)
-        single_width, _ = single_image.size
+        if random.choice(range(2)) == 0:
+            single_image = apply_perspective_transform(single_image)
         # 应用旋转变换
         #  # 旋转角度，可以调整
-        angle_ratio = random.uniform(-1.0, 1.0)
-        angle = 10 * angle_ratio
-        single_image = rotate_text_image(single_image, angle)
+        if random.choice(range(2)) == 0:
+            angle_ratio = random.uniform(-1.0, 1.0)
+            angle = 10 * angle_ratio
+            single_image = rotate_text_image(single_image, angle)
+        single_width, single_height = single_image.size
+        if single_height > 70 or single_width > 50:
+            single_image = single_image.resize((50, 70), Image.ANTIALIAS)
 
-
+        single_width, single_height = single_image.size
         # 加入划痕
         if random.choice(range(11)) == 0:
             single_image = apply_scratches(single_image)
             list_of_text[i] = 'x'
+        #if cell_width - single_width >= 0:
+        offset_x = random.randint(0, cell_width - single_width)
+        ##else:
+        #    offset_x = single_width - cell_width
 
-        offset_x = random.randint(0, cell_width - scaled_w)
-        offset_y = random.randint(0, height - scaled_h)
+        offset_y = random.randint(0, height - single_height)
+
         #paste_position = (i * cell_width + offset_x, offset_y)
         paste_position = (off_set_position + offset_x, offset_y)
         off_set_position += offset_x + single_width
