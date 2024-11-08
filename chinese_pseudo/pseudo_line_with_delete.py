@@ -160,6 +160,7 @@ import os
 from tqdm import tqdm
 import cv2  # OpenCV库，用于更快的图像处理
 from gen_scratch import apply_scratches
+from image_operation import *
 import pickle
 
 # 加载需要制作哪些汉字的字典
@@ -194,7 +195,7 @@ def load_local_images(image_directory):
 
 def create_handwritten_number_image(line_chars, output_path, mnist_data):
     list_of_text = list(line_chars)
-    width = 70 * len(line_chars)
+    width = 40 * len(line_chars)
     height = 70
     image = Image.new('L', (width, height), 255)
 
@@ -207,16 +208,28 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data):
             selected_images.append(selected_image)
         else:
             print(f"未找到字符的图像：{char}")
+            raise
             selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
 
     # 粘贴图像
     cell_width = width // len(line_chars)
+    off_set_position = 0
     for i, single_image in enumerate(selected_images):
         # 调整颜色和大小
-        scaled_w = int(cell_width * random.uniform(0.85, 1.0))
-        scaled_h = int(height * random.uniform(0.85, 1.0))
+        scale_ratio = random.uniform(0.8, 1.0)
+        scaled_w = int(cell_width * scale_ratio)
+        scaled_h = int(height * scale_ratio)
         single_image = cv2.resize(single_image, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR)
         single_image = Image.fromarray(single_image)
+        # 透视变换
+        single_image = apply_perspective_transform(single_image)
+        single_width, _ = single_image.size
+        # 应用旋转变换
+        #  # 旋转角度，可以调整
+        angle_ratio = random.uniform(-1.0, 1.0)
+        angle = 10 * angle_ratio
+        single_image = rotate_text_image(single_image, angle)
+
 
         # 加入划痕
         if random.choice(range(11)) == 0:
@@ -225,7 +238,9 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data):
 
         offset_x = random.randint(0, cell_width - scaled_w)
         offset_y = random.randint(0, height - scaled_h)
-        paste_position = (i * cell_width + offset_x, offset_y)
+        #paste_position = (i * cell_width + offset_x, offset_y)
+        paste_position = (off_set_position + offset_x, offset_y)
+        off_set_position += offset_x + single_width
         image.paste(single_image, paste_position)
 
     draw = ImageDraw.Draw(image)
@@ -233,10 +248,10 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data):
     draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
 
     # 添加边距
-    left_margin = 15
-    right_margin = 15
-    top_margin = 15
-    bottom_margin = 15
+    left_margin = 10
+    right_margin = 10
+    top_margin = 10
+    bottom_margin = 10
     larger_width = width + left_margin + right_margin
     larger_height = height + top_margin + bottom_margin
     larger_image = Image.new('L', (larger_width, larger_height), 255)
@@ -255,17 +270,17 @@ def process_image_wrapper(args):
 
 if __name__ == '__main__':
     random.seed(42)
-    image_directory = '/Users/zhangjian/PycharmProjects/pseudo_chinese_print_images'
+    image_directory = '../../pseudo_chinese_images_1106'
 
     # 加载单个汉字图片
     mnist_data = load_local_images(image_directory)
     output_paths_and_texts = []
-    for i in range(200000):
+    for i in range(1000):
         length = random.randint(15, 20)
         # 生成一串连续的文本
         text = generate_random_line(length)
         timestamp = int(time.time()) + i
-        output_path = f'../../psudo_chinese_data/gen_line_print_data/'
+        output_path = f'../../psudo_chinese_data/gen_line_print_data_1107/'
         output_paths_and_texts.append((output_path, text))
 
     # num_processes = multiprocessing.cpu_count()
