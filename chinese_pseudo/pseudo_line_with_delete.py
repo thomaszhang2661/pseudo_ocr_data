@@ -216,7 +216,7 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data):
     off_set_position = 0
     for i, single_image in enumerate(selected_images):
         # 调整颜色和大小
-        scale_ratio = random.uniform(0.8, 1.0)
+        scale_ratio = random.uniform(0.65, 1.0)
         scaled_w = int(cell_width * scale_ratio)
         scaled_h = int(height * scale_ratio)
         single_image = cv2.resize(single_image, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR)
@@ -244,7 +244,7 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data):
         ##else:
         #    offset_x = single_width - cell_width
 
-        offset_y = random.randint(0, height - single_height)
+        offset_y = random.randint(int(0.5*(height - single_height)), height - single_height)
 
         #paste_position = (i * cell_width + offset_x, offset_y)
         paste_position = (off_set_position + offset_x, offset_y)

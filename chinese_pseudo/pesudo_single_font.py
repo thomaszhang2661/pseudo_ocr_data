@@ -217,7 +217,12 @@ for font in tqdm(valid_fonts):
             y = (image_height - text_height) / 2
 
             # 绘制文本
-            draw.text((x, y), text_group, fill="black", font=font[0])
+            # if 语句确保字体没问题，否则可能出现空白图片
+            if font[0].getsize(text_group)[0] > 0:
+                draw.text((x, y), text_group, fill="black", font=font[0])
+            else:
+                continue
+
 
             # Add underline
 
