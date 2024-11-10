@@ -56,7 +56,7 @@ import matplotlib.font_manager
 import pickle
 
 # 定义用于保存生成图片的输出目录
-output_dir = "../../pseudo_chinese_images_1106_test"
+output_dir = "../../pseudo_chinese_images_1110"
 os.makedirs(output_dir, exist_ok=True)
 
 # 读取字符字典
@@ -145,7 +145,7 @@ def is_blank_image(image, threshold=5):
 # 设置图片尺寸和字体大小
 image_width = 300
 image_height = 300
-font_size = 40
+font_size = 70
 
 # # 用户字体目录（请根据实际路径进行修改）
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Library/Fonts")
@@ -209,8 +209,8 @@ print(f"有效字体数量: {len(valid_fonts)}")
 
 for font in tqdm(valid_fonts):
         for text_group in texts:
-            image = Image.new("RGB", (image_width, image_height), color="white")
-            draw = ImageDraw.Draw(image)
+            # image = Image.new("RGB", (image_width, image_height), color="white")
+            # draw = ImageDraw.Draw(image)
 
             # 计算文本的大小和位置
             #text_width, text_height = draw.textsize(text_group, font=font[0])
@@ -221,8 +221,8 @@ for font in tqdm(valid_fonts):
                 continue
 
             # 调整图片尺寸以适应文本
-            image_width = text_width
-            image_height = text_height
+            image_width = text_width + 5
+            image_height = text_height + 5
             image = Image.new("RGB", (image_width, image_height), color="white")
             draw = ImageDraw.Draw(image)
 

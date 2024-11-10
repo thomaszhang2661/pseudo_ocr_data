@@ -176,7 +176,7 @@ with open('char_dict.txt', 'r', encoding='utf-8') as f:
 
 dict_list = list(char_dict.keys())
 
-def generate_random_line(length,off_set,random_seq=Flase):
+def generate_random_line(length,off_set,random_seq=False):
     if random_seq:
         return ''.join(random.choices(dict_list, k=length))
 
@@ -222,7 +222,7 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
     # 随机选择一次所有字符的图像
     selected_images = []
     style = random.choice(font_style)
-    for char in line_chars:
+    for i_c, char in enumerate(line_chars):
         if char in mnist_data:
             char_images = mnist_data[char]
             # if random_font:
@@ -231,15 +231,16 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
             # #selected_image = char_images[np.random.choice(len(char_images))]
             #     selected_image = char_images[style]
             if random_font:
-                selected_image = char_images.get(random.choice(font_style), char_images.get("方正仿宋简体"))
+                selected_image = char_images.get(random.choice(font_style), char_images.get(random.choice(list(char_images.keys()))))
             else:
-                selected_image = char_images.get(style,char_images.get("方正仿宋简体"))
+                selected_image = char_images.get(style, char_images.get(random.choice(list(char_images.keys()))))
             selected_images.append(selected_image)
         else:
             print(f"未找到字符的图像：{char}")
-            raise
-            selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
-
+            #raise
+            #selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
+            selected_images.append(np.ones((height, width)) * 255)  # 如果找不到，填充白色图
+            list_of_text[i_c] = " "
     # 粘贴图像
     cell_width = width // len(line_chars)
     off_set_position = 0
@@ -249,7 +250,7 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
         random_flag = True
     for i, single_image in enumerate(selected_images):
         # 调整颜色和大小
-        scale_ratio = random.uniform(0.65, 1.0)
+        scale_ratio = random.uniform(0.8, 1.0)
         scaled_w = int(cell_width * scale_ratio)
         scaled_h = int(height * scale_ratio)
         single_image = cv2.resize(single_image, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR)
@@ -313,8 +314,8 @@ def process_image_wrapper(args):
 
 if __name__ == '__main__':
     random.seed(42)
-    image_directory = '../../pseudo_chinese_images_1106_test'
-    output_path = f'../../psudo_chinese_data/gen_line_print_data_1106_test/'
+    image_directory = '../../pseudo_chinese_images_1110'
+    output_path = f'../../psudo_chinese_data/gen_line_print_data_1110/'
     random_font = False
     random_seq = True
     os.makedirs(output_path, exist_ok=True)
