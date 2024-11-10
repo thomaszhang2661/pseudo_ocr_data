@@ -56,7 +56,7 @@ import matplotlib.font_manager
 import pickle
 
 # 定义用于保存生成图片的输出目录
-output_dir = "../../pseudo_chinese_images_1109"
+output_dir = "../../pseudo_chinese_images_1106_test"
 os.makedirs(output_dir, exist_ok=True)
 
 # 读取字符字典
@@ -150,7 +150,7 @@ font_size = 40
 # # 用户字体目录（请根据实际路径进行修改）
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Library/Fonts")
 # user_font_dir = os.path.expanduser("/System/Library/Fonts")
-user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
+user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_test/")
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected/")
 
 # 获取系统中已安装的字体列表
