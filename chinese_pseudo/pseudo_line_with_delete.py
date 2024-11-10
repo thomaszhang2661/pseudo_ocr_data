@@ -267,7 +267,7 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
 
         single_width, single_height = single_image.size
         # 加入划痕
-        if random.choice(range(11)) == 0:
+        if random.choice(range(20)) == 0:
             single_image = apply_scratches(single_image)
             list_of_text[i] = 'x'
         #if cell_width - single_width >= 0:
@@ -283,8 +283,9 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
         image.paste(single_image, paste_position)
 
     draw = ImageDraw.Draw(image)
-    underline_y = height - 5  # 下划线的位置
-    draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
+    if random.choice(range(2)) == 0:
+        underline_y = height - random.randint(3,7)  # 下划线的位置
+        draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
 
     # 添加边距
     left_margin = random.randint(2, 10)
@@ -325,6 +326,8 @@ if __name__ == '__main__':
         off_set += length
         if off_set > len(dict_list):
             off_set = 0
+        if len(text) == 0:
+            continue
         timestamp = int(time.time()) + i
         #output_paths_and_texts.append((output_path, text))
         create_handwritten_number_image(text, output_path, mnist_data, font_style, random_font)
