@@ -176,24 +176,41 @@ with open('char_dict.txt', 'r', encoding='utf-8') as f:
 
 dict_list = list(char_dict.keys())
 
-def generate_random_line(length):
+def generate_random_line(length,off_set):
+    temp_list = dict_list[off_set : min(off_set + length,len(dict_list))]
+    # 打乱字符顺序
+    random.shuffle(temp_list)
+    return ''.join(temp_list)
     return ''.join(random.choices(dict_list, k=length))
+
 
 def load_local_images(image_directory):
     """这个函数根据单子数据添加到一个字典结构中"""
     mnist_data = {}
-    filenames = [f for f in os.listdir(image_directory) if f.endswith('.jpg')]
+    font_style = []
+    #files = sorted(os.listdir(image_directory))
+    files = os.listdir(image_directory)
+    filenames = [f for f in files if f.endswith('.jpg')]
     for filename in tqdm(filenames, desc="加载图像"):
         font_name, label = filename.split('_', 1)
         label = label.split('.')[0]
+        if font_name not in font_style:
+            font_style.append(font_name)
         filepath = os.path.join(image_directory, filename)
         image = Image.open(filepath).convert('L')  # 转为灰度图
+        # if label not in mnist_data:
+        #     mnist_data[label] = []
+        # mnist_data[label].append(np.array(image))
+        # 初始化字典结构
         if label not in mnist_data:
-            mnist_data[label] = []
-        mnist_data[label].append(np.array(image))
-    return mnist_data
+            mnist_data[label] = {}
 
-def create_handwritten_number_image(line_chars, output_path, mnist_data):
+        # 将图像数据存入相应的标签和字体名下
+        mnist_data[label][font_name] = np.array(image)
+        #font_style = list(set(font_style))
+    return font_style, mnist_data
+
+def create_handwritten_number_image(line_chars, output_path, mnist_data, font_style):
     list_of_text = list(line_chars)
     width = 50 * len(line_chars)
     height = 70
@@ -201,10 +218,12 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data):
 
     # 随机选择一次所有字符的图像
     selected_images = []
+    style = random.choice((font_style))
     for char in line_chars:
         if char in mnist_data:
             char_images = mnist_data[char]
-            selected_image = char_images[np.random.choice(len(char_images))]
+            #selected_image = char_images[np.random.choice(len(char_images))]
+            selected_image = char_images[style]
             selected_images.append(selected_image)
         else:
             print(f"未找到字符的图像：{char}")
@@ -256,10 +275,10 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data):
     draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
 
     # 添加边距
-    left_margin = 10
-    right_margin = 10
-    top_margin = 10
-    bottom_margin = 10
+    left_margin = random.randint(2, 10)
+    right_margin = random.randint(2, 10)
+    top_margin = random.randint(2, 10)
+    bottom_margin = random.randint(2, 10)
     larger_width = width + left_margin + right_margin
     larger_height = height + top_margin + bottom_margin
     larger_image = Image.new('L', (larger_width, larger_height), 255)
@@ -272,24 +291,31 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data):
     larger_image.save(output_file)
 
 def process_image_wrapper(args):
-    output_path, text, mnist_data = args
-    create_handwritten_number_image(text, output_path, mnist_data)
+    output_path, text, mnist_data,font_style = args
+    create_handwritten_number_image(text, output_path, mnist_data, font_style)
     return output_path
 
 if __name__ == '__main__':
     random.seed(42)
-    image_directory = '../../pseudo_chinese_images_1106'
+    image_directory = '../../pseudo_chinese_images_1106_test'
+    output_path = f'../../psudo_chinese_data/gen_line_print_data_1109_test/'
+
+    os.makedirs(output_path, exist_ok=True)
 
     # 加载单个汉字图片
-    mnist_data = load_local_images(image_directory)
+    font_style, mnist_data = load_local_images(image_directory)
     output_paths_and_texts = []
+    off_set = 0
     for i in range(1000):
         length = random.randint(15, 20)
         # 生成一串连续的文本
-        text = generate_random_line(length)
+        text = generate_random_line(length, off_set)
+        off_set += length
+        if off_set > len(dict_list):
+            off_set = 0
         timestamp = int(time.time()) + i
-        output_path = f'../../psudo_chinese_data/gen_line_print_data_1107/'
-        output_paths_and_texts.append((output_path, text))
+        #output_paths_and_texts.append((output_path, text))
+        create_handwritten_number_image(text, output_path, mnist_data, font_style)
 
     # num_processes = multiprocessing.cpu_count()
     #
@@ -298,5 +324,6 @@ if __name__ == '__main__':
     #                                             [(path, text, mnist_data) for path, text in output_paths_and_texts]),
     #                         total=len(output_paths_and_texts)))
     # 单线程处理
-    for output_path, text in tqdm(output_paths_and_texts):
-        process_image_wrapper((output_path, text, mnist_data))
+
+    # for output_path, text in tqdm(output_paths_and_texts):
+    #     process_image_wrapper((output_path, text, mnist_data, font_style))
