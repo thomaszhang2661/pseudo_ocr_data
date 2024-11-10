@@ -176,12 +176,15 @@ with open('char_dict.txt', 'r', encoding='utf-8') as f:
 
 dict_list = list(char_dict.keys())
 
-def generate_random_line(length,off_set):
-    temp_list = dict_list[off_set : min(off_set + length,len(dict_list))]
-    # 打乱字符顺序
-    random.shuffle(temp_list)
-    return ''.join(temp_list)
-    return ''.join(random.choices(dict_list, k=length))
+def generate_random_line(length,off_set,random_seq=Flase):
+    if random_seq:
+        return ''.join(random.choices(dict_list, k=length))
+
+    else:
+        temp_list = dict_list[off_set : min(off_set + length,len(dict_list))]
+        # 打乱字符顺序
+        random.shuffle(temp_list)
+        return ''.join(temp_list)
 
 
 def load_local_images(image_directory):
@@ -313,6 +316,7 @@ if __name__ == '__main__':
     image_directory = '../../pseudo_chinese_images_1106_test'
     output_path = f'../../psudo_chinese_data/gen_line_print_data_1106_test/'
     random_font = False
+    random_seq = True
     os.makedirs(output_path, exist_ok=True)
 
     # 加载单个汉字图片
@@ -322,7 +326,7 @@ if __name__ == '__main__':
     for i in tqdm(range(1000)):
         length = random.randint(15, 20)
         # 生成一串连续的文本
-        text = generate_random_line(length, off_set)
+        text = generate_random_line(length, off_set, random_seq)
         off_set += length
         if off_set > len(dict_list):
             off_set = 0
