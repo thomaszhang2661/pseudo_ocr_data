@@ -236,6 +236,10 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
     # 粘贴图像
     cell_width = width // len(line_chars)
     off_set_position = 0
+    # 加入多样性？
+    random_flag = False
+    if random.choice(range(2)) == 0:
+        random_flag = True
     for i, single_image in enumerate(selected_images):
         # 调整颜色和大小
         scale_ratio = random.uniform(0.65, 1.0)
@@ -244,11 +248,11 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
         single_image = cv2.resize(single_image, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR)
         single_image = Image.fromarray(single_image)
         # 透视变换
-        if random.choice(range(2)) == 0:
+        if random_flag and random.choice(range(2)) == 0:
             single_image = apply_perspective_transform(single_image)
         # 应用旋转变换
         #  # 旋转角度，可以调整
-        if random.choice(range(2)) == 0:
+        if random_flag and random.choice(range(2)) == 0:
             angle_ratio = random.uniform(-1.0, 1.0)
             angle = 10 * angle_ratio
             single_image = rotate_text_image(single_image, angle)
