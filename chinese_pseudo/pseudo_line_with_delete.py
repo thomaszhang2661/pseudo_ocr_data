@@ -259,6 +259,7 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
         single_width, single_height = single_image.size
         if single_height > 70 or single_width > 50:
             single_image = single_image.resize((50, 70), Image.ANTIALIAS)
+            #single_image = single_image.resize((50, 70), Image.Resampling.LANCZOS)
 
         single_width, single_height = single_image.size
         # 加入划痕
