@@ -210,7 +210,7 @@ def load_local_images(image_directory):
         #font_style = list(set(font_style))
     return font_style, mnist_data
 
-def create_handwritten_number_image(line_chars, output_path, mnist_data, font_style):
+def create_handwritten_number_image(line_chars, output_path, mnist_data, font_style, random_font=False):
     list_of_text = list(line_chars)
     width = 50 * len(line_chars)
     height = 70
@@ -218,12 +218,15 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
 
     # 随机选择一次所有字符的图像
     selected_images = []
-    style = random.choice((font_style))
+    style = random.choice(font_style)
     for char in line_chars:
         if char in mnist_data:
             char_images = mnist_data[char]
+            if random_font:
+                selected_image = char_images[random.choice(font_style)]
+            else:
             #selected_image = char_images[np.random.choice(len(char_images))]
-            selected_image = char_images[style]
+                selected_image = char_images[style]
             selected_images.append(selected_image)
         else:
             print(f"未找到字符的图像：{char}")
@@ -299,7 +302,7 @@ if __name__ == '__main__':
     random.seed(42)
     image_directory = '../../pseudo_chinese_images_1106_test'
     output_path = f'../../psudo_chinese_data/gen_line_print_data_1109_test/'
-
+    random_font = False
     os.makedirs(output_path, exist_ok=True)
 
     # 加载单个汉字图片
@@ -315,7 +318,7 @@ if __name__ == '__main__':
             off_set = 0
         timestamp = int(time.time()) + i
         #output_paths_and_texts.append((output_path, text))
-        create_handwritten_number_image(text, output_path, mnist_data, font_style)
+        create_handwritten_number_image(text, output_path, mnist_data, font_style, random_font)
 
     # num_processes = multiprocessing.cpu_count()
     #
