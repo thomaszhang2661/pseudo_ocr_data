@@ -309,7 +309,7 @@ if __name__ == '__main__':
     font_style, mnist_data = load_local_images(image_directory)
     output_paths_and_texts = []
     off_set = 0
-    for i in range(1000):
+    for i in tqdm(range(1000)):
         length = random.randint(15, 20)
         # 生成一串连续的文本
         text = generate_random_line(length, off_set)
