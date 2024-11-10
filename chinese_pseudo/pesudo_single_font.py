@@ -6,6 +6,7 @@
 '''第一部分提取字典内容'''
 import pickle
 from tqdm import tqdm
+import numpy as np
 
 
 # 加载需要制作哪些汉字的字典
@@ -55,7 +56,7 @@ import matplotlib.font_manager
 import pickle
 
 # 定义用于保存生成图片的输出目录
-output_dir = "../../pseudo_chinese_images_1106_test"
+output_dir = "../../pseudo_chinese_images_1109"
 os.makedirs(output_dir, exist_ok=True)
 
 # 读取字符字典
@@ -75,6 +76,17 @@ texts = list(char_dict.keys())
 def is_chinese_char(char):
     return '\u4e00' <= char <= '\u9fff'
 
+def is_blank_image(image, threshold=5):
+    pixels = np.array(image)
+
+    # 计算图片中所有像素与白色（255, 255, 255）的差异
+    diff = np.abs(pixels - 255)
+    diff_sum = np.sum(diff)
+
+    # 如果所有像素都与白色像素差异小于阈值，则认为是空白图像
+    if diff_sum < threshold:
+        return True
+    return False
 # 定义要使用的字体列表
 # select_list = ["Wawati SC","Baoli SC"]
 # select_list = [
@@ -138,7 +150,7 @@ font_size = 40
 # # 用户字体目录（请根据实际路径进行修改）
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Library/Fonts")
 # user_font_dir = os.path.expanduser("/System/Library/Fonts")
-user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected/")
+user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected/")
 
 # 获取系统中已安装的字体列表
@@ -204,7 +216,9 @@ for font in tqdm(valid_fonts):
             #text_width, text_height = draw.textsize(text_group, font=font[0])
             #text_width0, text_height_0 = draw.textsize(" ", font=font[0])
             text_width, text_height = font[0].getsize(text_group)
-
+            # 动态计算图片尺寸
+            if text_width == 0 or text_height == 0:
+                continue
 
             # 调整图片尺寸以适应文本
             image_width = text_width
@@ -233,10 +247,10 @@ for font in tqdm(valid_fonts):
             #underline_y = min(underline_y, image_height - 10)
             #draw.line([(x, underline_y), (x + text_width, underline_y)], fill="black",
             #          width=under_line_hight)  # Adjust width as needed
-
+            if not is_blank_image(image):
             # 保存图像
-            image_filename = os.path.join(output_dir, f"{font[1]}_{text_group}.jpg")
-            image.save(image_filename)
+                image_filename = os.path.join(output_dir, f"{font[1]}_{text_group}.jpg")
+                image.save(image_filename)
 
             # 打印生成的信息
             #print(f"生成图像 {image_filename}，文本: {text_group}，字体: {font[1]}")
@@ -291,3 +305,4 @@ for font in tqdm(valid_fonts):
 # print(f"有效字体数量: {len(valid_fonts)}")
 
 ######################################
+

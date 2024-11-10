@@ -222,11 +222,15 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
     for char in line_chars:
         if char in mnist_data:
             char_images = mnist_data[char]
+            # if random_font:
+            #     selected_image = char_images[random.choice(font_style)]
+            # else:
+            # #selected_image = char_images[np.random.choice(len(char_images))]
+            #     selected_image = char_images[style]
             if random_font:
-                selected_image = char_images[random.choice(font_style)]
+                selected_image = char_images.get(random.choice(font_style), "方正仿宋简体")
             else:
-            #selected_image = char_images[np.random.choice(len(char_images))]
-                selected_image = char_images[style]
+                selected_image = char_images.get(style,"方正仿宋简体")
             selected_images.append(selected_image)
         else:
             print(f"未找到字符的图像：{char}")
