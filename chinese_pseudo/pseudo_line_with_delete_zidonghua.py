@@ -284,7 +284,7 @@ def load_local_images_pub(image_directory):
             mnist_data[word] = []
 
             # 为每个文件提交加载任务
-            for filename in files[:1]:
+            for filename in files[:5]:
                 filepath = os.path.join(folder_path, filename)
                 future = executor.submit(load_image, filepath)
                 future_to_image[future] = word  # 关联图像与标签
@@ -386,11 +386,12 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
         underline_y = height - random.randint(3, 7)  # 下划线的位置
         draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
 
-
-    left_margin = 0#random.randint(2, 10)
-    right_margin = 0#random.randint(2, 10)
-    top_margin = 0#random.randint(2, 10)
-    bottom_margin = 0#random.randint(2, 10)
+    min_margin = int(0.1 * height)
+    max_margin = int(0.18 * height)
+    left_margin = random.randint(min_margin, max_margin)
+    right_margin = random.randint(min_margin, max_margin)
+    top_margin = random.randint(min_margin, max_margin)
+    bottom_margin = random.randint(min_margin, max_margin)
     larger_width = width + left_margin + right_margin
     larger_height = height + top_margin + bottom_margin
     larger_image = Image.new('L', (larger_width, larger_height), 255)
@@ -421,9 +422,10 @@ def adjust_gamma(image, gamma=1.0):
 
 def create_handwritten_number_image_pub(line_chars, output_path, mnist_data):
     '''根据自动化所的手写图像生成伪数据'''
+
     list_of_text = list(line_chars)
-    width = 50 * len(line_chars)
-    height = 70
+    width = 80 * len(line_chars)
+    height = 80
     image = Image.new('L', (width, height), 255)
 
     # 随机选择一次所有字符的图像
@@ -431,12 +433,14 @@ def create_handwritten_number_image_pub(line_chars, output_path, mnist_data):
     for i_c, char in enumerate(line_chars):
         if char in mnist_data:
             char_images = mnist_data[char]
+            random_indices = random.randint(0, len(char_images) - 1)
+
             # if random_font:
             #     selected_image = char_images[random.choice(font_style)]
             # else:
             # #selected_image = char_images[np.random.choice(len(char_images))]
             #     selected_image = char_images[style]
-            selected_image = random.choice(char_images)
+            selected_image = char_images[random_indices]
             selected_images.append(selected_image)
         else:
             print(f"未找到字符的图像：{char}")
@@ -453,11 +457,25 @@ def create_handwritten_number_image_pub(line_chars, output_path, mnist_data):
         random_flag = True
     for i, single_image in enumerate(selected_images):
         # 调整颜色和大小
+        # 取原图尺寸
+        pic_width, pic_height = Image.fromarray(single_image).size
+        # 取随机数
         scale_ratio = random.uniform(0.8, 1.0)
-        scaled_w = int(cell_width * scale_ratio)
-        scaled_h = int(height * scale_ratio)
-        single_image = cv2.resize(single_image, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR)
+        # 缩放之后的图片大小
+        resize_ratio = min(64/pic_width, 64/pic_height)
+        single_image = cv2.resize(single_image,
+                                  (int(pic_width * resize_ratio * scale_ratio),
+                                   int(pic_height * resize_ratio * scale_ratio)),
+                                  interpolation=cv2.INTER_LINEAR)
         single_image = Image.fromarray(single_image)
+        single_width, single_height = single_image.size
+
+        left_margin_single = int((cell_width - single_width)/2)
+        top_margin_single = int((height - single_height)/2)
+        single_blank = Image.new('L', (cell_width, height), 255)
+
+        single_blank.paste(single_image, (left_margin_single, top_margin_single))
+        single_image = single_blank
         # 透视变换
         if random_flag and random.choice(range(2)) == 0:
             single_image = apply_perspective_transform(single_image)
@@ -468,8 +486,8 @@ def create_handwritten_number_image_pub(line_chars, output_path, mnist_data):
             angle = 10 * angle_ratio
             single_image = rotate_text_image(single_image, angle)
         single_width, single_height = single_image.size
-        if single_height > 70 or single_width > 50:
-            single_image = single_image.resize((50, 70), Image.ANTIALIAS)
+        if single_height > height or single_width > cell_width:
+            single_image = single_image.resize((cell_width, height), Image.ANTIALIAS)
             #single_image = single_image.resize((50, 70), Image.Resampling.LANCZOS)
 
         # 加入划痕
@@ -502,21 +520,28 @@ def create_handwritten_number_image_pub(line_chars, output_path, mnist_data):
     gamma_value = 0.4  # 可以调整此值，0.5效果通常较为明显
     image = adjust_gamma(image, gamma=gamma_value)
 
-    left_margin = 0#random.randint(2, 10)
-    right_margin = 0#random.randint(2, 10)
-    top_margin = 0#random.randint(2, 10)
-    bottom_margin = 0#random.randint(2, 10)
+    min_margin = int(0.1 * height)
+    max_margin = int(0.18 * height)
+    left_margin = random.randint(min_margin, max_margin)
+    right_margin = random.randint(min_margin, max_margin)
+    top_margin = random.randint(min_margin, max_margin)
+    bottom_margin = random.randint(min_margin, max_margin)
     larger_width = width + left_margin + right_margin
     larger_height = height + top_margin + bottom_margin
     larger_image = Image.new('L', (larger_width, larger_height), 255)
     larger_image.paste(image, (left_margin, top_margin))
 
     # 保存图像
+    width, height = larger_image.size
+    # 计算新的宽度以保持纵横比
+    target_height = 70
+    new_width = int((target_height / height) * width)
+    resized_image = larger_image.resize((new_width, target_height), Image.Resampling.LANCZOS)
+
     timestamp = int(time.time())
     text_new = "".join(list_of_text)
     output_file = f'{output_path}{timestamp}_{text_new}.jpg'
-    larger_image.save(output_file)
-
+    resized_image.save(output_file)
 
 def process_image_wrapper(args):
     output_path, text, mnist_data,font_style = args
@@ -539,6 +564,9 @@ if __name__ == '__main__':
         mnist_data = load_local_images_pub(image_directory)
     else:
         font_style, mnist_data = load_local_images(image_directory)
+    # 检查单个字体
+    #Image.fromarray(mnist_data["张"][0]).save('../../psudo_chinese_data/test.png')
+
     output_paths_and_texts = []
     off_set = 0
     for i in tqdm(range(1000)):

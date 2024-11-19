@@ -56,7 +56,7 @@ import matplotlib.font_manager
 import pickle
 
 # 定义用于保存生成图片的输出目录
-output_dir = "../../pseudo_chinese_images_1112_昊"
+output_dir = "../../pseudo_chinese_images_1118_熠"
 os.makedirs(output_dir, exist_ok=True)
 
 # 读取字符字典
@@ -177,7 +177,7 @@ print(f"有效字体数量: {len(valid_fonts)}")
 
 for font in tqdm(valid_fonts):
     for text_group in texts:
-        if text_group != "昊":
+        if text_group != "熠":
             continue
         # image = Image.new("RGB", (image_width, image_height), color="white")
         # draw = ImageDraw.Draw(image)

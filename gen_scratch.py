@@ -139,7 +139,7 @@ def draw_horizontal_scratch(image, num_scratch_lines_max=5, line_width_range=(3,
     """
     draw = ImageDraw.Draw(image)
     width, height = image.size
-    num_scratch_lines = random.randint(3, num_scratch_lines_max)
+    num_scratch_lines = random.randint(2, num_scratch_lines_max)
     bound = int(height / 4)
 
     # 计算均匀间隔
