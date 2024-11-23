@@ -186,7 +186,7 @@ def load_local_images_pub(image_directory):
         folder_path = os.path.join(image_directory, sub_files)
 
         # 获取该文件夹中所有文件名，并仅取前5个文件
-        files = os.listdir(folder_path)[:5]
+        files = os.listdir(folder_path)#[:5]
 
         # 初始化当前字符的图像数据列表
         zidonghua_data[word] = []
@@ -197,7 +197,7 @@ def load_local_images_pub(image_directory):
             try:
                 # 加载图像并转换为灰度模式
                 image_data = Image.open(filepath).convert('L')
-                mnist_data[word].append(image_data)  # 存储图像数据
+                zidonghua_data[word].append(image_data)  # 存储图像数据
             except Exception as e:
                 print(f"Error loading image {filepath}: {e}")
 
@@ -252,10 +252,10 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
         # 归一化文字部分的大小
         single_image = crop_off_whitespace(single_image)
         cur_width, cur_height = single_image.size
-        #single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
         ratio = min(width_goal/cur_width, height_goal/cur_height)
 
         single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.ANTIALIAS)
+        #single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.Resampling.LANCZOS)
 
 
         # 调整颜色和大小
@@ -264,6 +264,7 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
         scaled_w = int(single_width * scale_ratio)
         scaled_h = int(single_height * scale_ratio)
         single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
+        #single_image = single_image.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
 
         # 透视变换
         if random_flag and random.choice(range(2)) == 0:
@@ -280,7 +281,8 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
             # single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
             ratio = min(width_goal / cur_width, height_goal / cur_height)
             single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)), Image.ANTIALIAS)
-            #single_image = single_image.resize((single_width, height_goal), Image.Resampling.LANCZOS)
+            #single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)),
+            # Image.Resampling.LANCZOS)
 
         # 加入划痕
         if random.choice(range(20)) == 0:
@@ -346,8 +348,9 @@ if __name__ == '__main__':
     os.makedirs(output_path, exist_ok=True)
 
     # 加载单个汉字图片
-    font_style, mnist_data = load_local_images(image_font_directory)
     zidonghua_data = load_local_images_pub(image_pub_directory)
+
+    font_style, mnist_data = load_local_images(image_font_directory)
 
     output_paths_and_texts = []
     off_set = 0
