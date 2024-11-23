@@ -79,14 +79,25 @@ with open('./all_chinese_dicts.txt', 'r', encoding='utf-8') as f:
     for line in f:
         chinese_words.append(line.strip())
 
-def generate_random_line(length,off_set, random_seq=False):
-    if random_seq:
-        return ''.join(random.choices(dict_list, k=length))
-    else:
-        temp_list = dict_list[off_set : min(off_set + length,len(dict_list))]
-        # 打乱字符顺序
-        random.shuffle(temp_list)
-        return ''.join(temp_list)
+
+# 定义伽马校正函数
+def adjust_gamma(image, gamma=1.0):
+    # 构建查找表来加快伽马校正的速度
+
+    image = Image.fromarray(image)
+
+    inv_gamma = 1.0 / gamma
+    table = np.array([(i / 255.0) ** inv_gamma * 255 for i in range(256)]).astype("uint8")
+
+    # 将图像转换为灰度模式（如果图像为 RGB 模式）
+    if image.mode != 'L':
+        image = image.convert('L')
+
+    # 应用查找表进行伽马校正
+    image = image.point(table)
+
+    return np.array(image)
+
 
 
 def generate_line_by_chinese_word(off_set, random_seq=False,length=1,):
@@ -144,7 +155,7 @@ def load_local_images(image_directory):
     #files = sorted(os.listdir(image_directory))
     files = os.listdir(image_directory)
     filenames = [f for f in files if f.endswith('.jpg')]
-    for filename in tqdm(filenames, desc="加载图像"):
+    for filename in tqdm(filenames[:10000], desc="加载图像"):
         font_name, label = filename.split('_', 1)
         label = label.split('.')[0]
         if font_name not in font_style:
@@ -164,8 +175,6 @@ def load_local_images(image_directory):
     return font_style, mnist_data
 
 
-import os
-from tqdm import tqdm
 
 
 def load_local_images_pub(image_directory):
@@ -186,7 +195,7 @@ def load_local_images_pub(image_directory):
         folder_path = os.path.join(image_directory, sub_files)
 
         # 获取该文件夹中所有文件名，并仅取前5个文件
-        files = os.listdir(folder_path)#[:5]
+        files = os.listdir(folder_path)[:5]
 
         # 初始化当前字符的图像数据列表
         zidonghua_data[word] = []
@@ -197,7 +206,7 @@ def load_local_images_pub(image_directory):
             try:
                 # 加载图像并转换为灰度模式
                 image_data = Image.open(filepath).convert('L')
-                zidonghua_data[word].append(image_data)  # 存储图像数据
+                zidonghua_data[word].append(np.array(image_data))  # 存储图像数据
             except Exception as e:
                 print(f"Error loading image {filepath}: {e}")
 
@@ -214,7 +223,7 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
     off_set_max = 5
     # 整幅图片
     image = Image.new('L', ((width_goal + off_set_max)*len(line_chars), height_goal), 255)
-
+    gamma_value = 0.4  # 可以调整此值，0.5效果通常较为明显
     # 随机选择一次所有字符的图像
     selected_images = []
     for i_c, char in enumerate(line_chars):
@@ -223,6 +232,8 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
             random_indices = random.randint(0, len(char_images) - 1)
 
             selected_image = char_images[random_indices]
+            # 调整伽马值，尝试低于1.0的值来增加黑色区域的深度
+            selected_image = adjust_gamma(selected_image, gamma=gamma_value)
             selected_images.append(selected_image)
         elif char in mnist_data:
             char_images = mnist_data[char]
@@ -235,7 +246,7 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
             print(f"未找到字符的图像：{char}")
             #raise
             #selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
-            selected_images.append(np.ones((height_goal, int(width_goal)/2)) * 255)  # 如果找不到，填充白色图
+            selected_images.append(np.ones((height_goal, int(width_goal/2))) * 255)  # 如果找不到，填充白色图
             if char != " ":
                 print("未找到字符", char)
             list_of_text[i_c] = ""

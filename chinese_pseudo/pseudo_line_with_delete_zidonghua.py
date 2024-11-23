@@ -407,14 +407,26 @@ def create_handwritten_number_image_pub(line_chars, output_path, mnist_data):
         off_set_position += offset_x + single_width
         image.paste(single_image, paste_position)
 
+    # # 切边
+    # image = crop_off_whitespace(image)
+    # width, height = image.size
+    #
+    # draw = ImageDraw.Draw(image)
+    # if random.choice(range(2)) == 0:
+    #     underline_y = height - random.randint(0, 5)  # 下划线的位置
+    #     draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
+
     # 切边
     image = crop_off_whitespace(image)
     width, height = image.size
 
     draw = ImageDraw.Draw(image)
     if random.choice(range(2)) == 0:
-        underline_y = height - random.randint(0, 5)  # 下划线的位置
+        underline_y = height - random.randint(3, 7)  # 下划线的位置
         draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
+    # 调整伽马值，尝试低于1.0的值来增加黑色区域的深度
+    gamma_value = 0.4  # 可以调整此值，0.5效果通常较为明显
+    image = adjust_gamma(image, gamma=gamma_value)
 
     # 添加边距
     min_margin = int(0.1 * height)
