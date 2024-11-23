@@ -240,10 +240,6 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
 
         # 此处可加入随机性
         single_width, single_height = single_image.size
-        ratio = min(height_goal / single_height, width_goal / single_width)
-        single_image = single_image.resize((int(single_width * ratio), int(single_height*ratio)), Image.ANTIALIAS)
-        #single_image = single_image.resize((int(single_width * ratio), int(single_height * ratio)),
-        #                                   Image.Resampling.LANCZOS)
 
         # if cell_width - single_width >= 0:
         offset_x = random.randint(0, off_set_max)

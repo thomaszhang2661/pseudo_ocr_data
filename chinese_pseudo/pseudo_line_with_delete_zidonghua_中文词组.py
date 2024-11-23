@@ -63,6 +63,17 @@ with open('./char_dict.txt', 'r', encoding='utf-8') as f:
 
 dict_list = list(char_dict.keys())
 
+
+zidonghua_dict = {}
+zidonghua_dict_reverse = {}
+
+with open('char_dict_zidonghua.txt', 'r', encoding='utf-8') as f:
+    for line in f:
+        char, code = line.strip().split('\t')  # 按制表符分割
+        zidonghua_dict[char] = int(code)  # 将编码转换为整数
+        zidonghua_dict_reverse[int(code)] = char
+zidonghua_list = list(zidonghua_dict.keys())
+
 chinese_words = []
 with open('./all_chinese_dicts.txt', 'r', encoding='utf-8') as f:
     for line in f:
@@ -153,8 +164,49 @@ def load_local_images(image_directory):
     return font_style, mnist_data
 
 
+import os
+from tqdm import tqdm
 
-def create_handwritten_number_image(line_chars, output_path, mnist_data, font_style, random_font=False):
+
+def load_local_images_pub(image_directory):
+    '''加载自动化所的单个手写字体'''
+    zidonghua_data = {}
+
+    # 获取所有子文件夹的列表
+    sub_files_list = [sub_files for sub_files in os.listdir(image_directory)
+                      if len(sub_files) == 5 and sub_files.isdigit()]
+
+    # 遍历所有有效子文件夹
+    for sub_files in tqdm(sub_files_list, desc="加载图像"):
+        # 获取对应的字符
+        word = zidonghua_dict_reverse.get(int(sub_files), None)
+        if word is None:  # 如果字典中没有对应的字符，跳过
+            continue
+
+        folder_path = os.path.join(image_directory, sub_files)
+
+        # 获取该文件夹中所有文件名，并仅取前5个文件
+        files = os.listdir(folder_path)[:5]
+
+        # 初始化当前字符的图像数据列表
+        zidonghua_data[word] = []
+
+        # 直接打开图像并转换为灰度图像，批量加载
+        for filename in files:
+            filepath = os.path.join(folder_path, filename)
+            try:
+                # 加载图像并转换为灰度模式
+                image_data = Image.open(filepath).convert('L')
+                mnist_data[word].append(image_data)  # 存储图像数据
+            except Exception as e:
+                print(f"Error loading image {filepath}: {e}")
+
+    return zidonghua_data
+
+
+def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data, mnist_data):
+    '''根据自动化所的手写图像生成伪数据'''
+
     list_of_text = list(line_chars)
 
     width_goal = 70
@@ -162,29 +214,32 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
     off_set_max = 5
     # 整幅图片
     image = Image.new('L', ((width_goal + off_set_max)*len(line_chars), height_goal), 255)
+
     # 随机选择一次所有字符的图像
     selected_images = []
-    style = random.choice(font_style)
-
     for i_c, char in enumerate(line_chars):
-        if char in mnist_data:
+        if char in zidonghua_data:
+            char_images = zidonghua_data[char]
+            random_indices = random.randint(0, len(char_images) - 1)
+
+            selected_image = char_images[random_indices]
+            selected_images.append(selected_image)
+        elif char in mnist_data:
             char_images = mnist_data[char]
-            if random_font:
-                selected_image = char_images.get(random.choice(font_style),
+            selected_image = char_images.get(random.choice(font_style),
                                                  char_images.get(random.choice(list(char_images.keys()))))
-            else:
-                selected_image = char_images.get(style, char_images.get(random.choice(list(char_images.keys()))))
 
             selected_images.append(selected_image)
 
         else:
-            # print(f"未找到字符的图像：{char}")
-
-            # selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
-            selected_images.append(np.ones((height_goal, int(width_goal/2))) * 255)  # 如果找不到，填充白色图
+            print(f"未找到字符的图像：{char}")
+            #raise
+            #selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
+            selected_images.append(np.ones((height_goal, int(width_goal)/2)) * 255)  # 如果找不到，填充白色图
             if char != " ":
-                print("未找到字符",char)
+                print("未找到字符", char)
             list_of_text[i_c] = ""
+    # 粘贴图像
     # 粘贴图像
     off_set_position = 0
     # 加入多样性？
@@ -196,12 +251,11 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
 
         # 归一化文字部分的大小
         single_image = crop_off_whitespace(single_image)
+        cur_width, cur_height = single_image.size
         #single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
-        single_width, single_height = single_image.size
-        ratio = min(height_goal/single_height, width_goal/single_width)
-        single_image = single_image.resize((int(ratio*single_width), int(ratio*single_height)), Image.ANTIALIAS)
-        #single_image = single_image.resize((int(ratio*single_width), int(ratio*single_height)),
-        # Image.Resampling.LANCZOS)
+        ratio = min(width_goal/cur_width, height_goal/cur_height)
+
+        single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.ANTIALIAS)
 
 
         # 调整颜色和大小
@@ -210,8 +264,6 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
         scaled_w = int(single_width * scale_ratio)
         scaled_h = int(single_height * scale_ratio)
         single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
-        #single_image = single_image.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
-
 
         # 透视变换
         if random_flag and random.choice(range(2)) == 0:
@@ -222,16 +274,16 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
             angle_ratio = random.uniform(-1.0, 1.0)
             angle = 10 * angle_ratio
             single_image = rotate_text_image(single_image, angle)
-        single_width, single_height = single_image.size
-        if single_height > height_goal or single_width > width_goal:
-            single_width, single_height = single_image.size
-            ratio = min(height_goal/single_height, width_goal/single_width)
-            single_image = single_image.resize((int(single_width * ratio), int(single_height*ratio)), Image.ANTIALIAS)
-            #single_image = single_image.resize((int(single_width * ratio), int(single_height*ratio)),
-            # Image.Resampling.LANCZOS)
+
+        cur_width, cur_height = single_image.size
+        if cur_height > height_goal or cur_width > width_goal:
+            # single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
+            ratio = min(width_goal / cur_width, height_goal / cur_height)
+            single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)), Image.ANTIALIAS)
+            #single_image = single_image.resize((single_width, height_goal), Image.Resampling.LANCZOS)
 
         # 加入划痕
-        if random.choice(range(50)) == 0:
+        if random.choice(range(20)) == 0:
             single_image = crop_off_whitespace(single_image)
             single_image = apply_scratches(single_image)
             list_of_text[i] = 'x'
@@ -240,12 +292,6 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
 
         # 此处可加入随机性
         single_width, single_height = single_image.size
-        ratio = min(height_goal / single_height, width_goal / single_width)
-        single_image = single_image.resize((int(single_width * ratio), int(single_height*ratio)), Image.ANTIALIAS)
-        #single_image = single_image.resize((int(single_width * ratio), int(single_height * ratio)),
-        #                                   Image.Resampling.LANCZOS)
-
-        # if cell_width - single_width >= 0:
         offset_x = random.randint(0, off_set_max)
         ##else:
         #    offset_x = single_width - cell_width
@@ -285,24 +331,24 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
     larger_image.save(output_file)
 
 
-def process_image_wrapper(args):
-    output_path, text, mnist_data,font_style = args
-    create_handwritten_number_image(text, output_path, mnist_data, font_style)
-    return output_path
 
 if __name__ == '__main__':
     random.seed(40)
     #image_directory = './single_font/pseudo_chinese_images_1111_checked'
-    image_directory = '../../pseudo_chinese_images_1111_checked/'
+    image_font_directory = '../../pseudo_chinese_images_1111_checked/'
+    image_pub_directory = './chinese_data1018/pic_chinese_char'
+
     #output_path = './Chinese-app-digital/data/data_train/'
     #output_path = f'./psudo_chinese_data/gen_line_print_data_1110/'
-    output_path = '../../psudo_chinese_data/gen_line_print_data_1123/'
+    output_path = '../../psudo_chinese_data/gen_line_print_data_1123_hw/'
     random_font = True
     random_seq = True
     os.makedirs(output_path, exist_ok=True)
 
     # 加载单个汉字图片
-    font_style, mnist_data = load_local_images(image_directory)
+    font_style, mnist_data = load_local_images(image_font_directory)
+    zidonghua_data = load_local_images_pub(image_pub_directory)
+
     output_paths_and_texts = []
     off_set = 0
     for i in tqdm(range(1000)):
@@ -318,7 +364,7 @@ if __name__ == '__main__':
             continue
         timestamp = int(time.time()) + i
         #output_paths_and_texts.append((output_path, text))
-        create_handwritten_number_image(text, output_path, mnist_data, font_style, random_font)
+        create_handwritten_number_image_pub(text, output_path, zidonghua_data, mnist_data)
 
 
 
