@@ -149,6 +149,8 @@
 作者：张健
 时间：2024.10.20
 这个模块制造伪的行数据，基于单个中文字，随机添加删除符号
+百度飞浆数据集
+https://github.com/PaddlePaddle/PaddleOCR/blob/release/2.6/doc/doc_ch/dataset/handwritten_datasets.md
 """
 
 from PIL import Image, ImageDraw
@@ -176,7 +178,7 @@ import pickle
 char_dict = {}
 char_dict_reverse = {}
 
-with open('char_dict.txt', 'r', encoding='utf-8') as f:
+with open('char_dict_zidonghua.txt', 'r', encoding='utf-8') as f:
     for line in f:
         char, code = line.strip().split('\t')  # 按制表符分割
         char_dict[char] = int(code)  # 将编码转换为整数
@@ -297,112 +299,6 @@ def load_local_images_pub(image_directory):
 
     return mnist_data
 
-def create_handwritten_number_image(line_chars, output_path, mnist_data, font_style, random_font=False):
-    list_of_text = list(line_chars)
-    width = 50 * len(line_chars)
-    height = 70
-    image = Image.new('L', (width, height), 255)
-
-    # 随机选择一次所有字符的图像
-    selected_images = []
-    style = random.choice(font_style)
-    for i_c, char in enumerate(line_chars):
-        if char in mnist_data:
-            char_images = mnist_data[char]
-            # if random_font:
-            #     selected_image = char_images[random.choice(font_style)]
-            # else:
-            # #selected_image = char_images[np.random.choice(len(char_images))]
-            #     selected_image = char_images[style]
-            if random_font:
-                selected_image = char_images.get(random.choice(font_style), char_images.get(random.choice(list(char_images.keys()))))
-            else:
-                selected_image = char_images.get(style, char_images.get(random.choice(list(char_images.keys()))))
-            selected_images.append(selected_image)
-        else:
-            print(f"未找到字符的图像：{char}")
-            #raise
-            #selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
-            selected_images.append(np.ones((height, width)) * 255)  # 如果找不到，填充白色图
-            list_of_text[i_c] = " "
-    # 粘贴图像
-    cell_width = width // len(line_chars)
-    off_set_position = 0
-    # 加入多样性？
-    random_flag = False
-    if random.choice(range(2)) == 0:
-        random_flag = True
-    for i, single_image in enumerate(selected_images):
-        # 调整颜色和大小
-        scale_ratio = random.uniform(0.8, 1.0)
-        scaled_w = int(cell_width * scale_ratio)
-        scaled_h = int(height * scale_ratio)
-        single_image = cv2.resize(single_image, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR)
-        single_image = Image.fromarray(single_image)
-        # 透视变换
-        if random_flag and random.choice(range(2)) == 0:
-            single_image = apply_perspective_transform(single_image)
-        # 应用旋转变换
-        #  # 旋转角度，可以调整
-        if random_flag and random.choice(range(2)) == 0:
-            angle_ratio = random.uniform(-1.0, 1.0)
-            angle = 10 * angle_ratio
-            single_image = rotate_text_image(single_image, angle)
-        single_width, single_height = single_image.size
-        if single_height > 70 or single_width > 50:
-            single_image = single_image.resize((50, 70), Image.ANTIALIAS)
-            #single_image = single_image.resize((50, 70), Image.Resampling.LANCZOS)
-
-        # single_width, single_height = single_image.size
-        # # 加入划痕
-        # if random.choice(range(20)) == 0:
-        #     single_image = apply_scratches(single_image)
-        #     list_of_text[i] = 'x'
-
-        # 加入划痕
-        if random.choice(range(20)) == 0:
-            single_image = crop_off_whitespace(single_image)
-            single_image = apply_scratches(single_image)
-            list_of_text[i] = 'x'
-        single_width, single_height = single_image.size
-
-        #if cell_width - single_width >= 0:
-        offset_x = random.randint(0, cell_width - single_width)
-        ##else:
-        #    offset_x = single_width - cell_width
-
-        offset_y = random.randint(int(0.5*(height - single_height)), height - single_height)
-
-        #paste_position = (i * cell_width + offset_x, offset_y)
-        paste_position = (off_set_position + offset_x, offset_y)
-        off_set_position += offset_x + single_width
-        image.paste(single_image, paste_position)
-    # 切边
-    image = crop_off_whitespace(image)
-    width, height = image.size
-
-    draw = ImageDraw.Draw(image)
-    if random.choice(range(2)) == 0:
-        underline_y = height - random.randint(3, 7)  # 下划线的位置
-        draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
-
-    min_margin = int(0.1 * height)
-    max_margin = int(0.18 * height)
-    left_margin = random.randint(min_margin, max_margin)
-    right_margin = random.randint(min_margin, max_margin)
-    top_margin = random.randint(min_margin, max_margin)
-    bottom_margin = random.randint(min_margin, max_margin)
-    larger_width = width + left_margin + right_margin
-    larger_height = height + top_margin + bottom_margin
-    larger_image = Image.new('L', (larger_width, larger_height), 255)
-    larger_image.paste(image, (left_margin, top_margin))
-
-    # 保存图像
-    timestamp = int(time.time())
-    text_new = "".join(list_of_text)
-    output_file = f'{output_path}{timestamp}_{text_new}.jpg'
-    larger_image.save(output_file)
-
 
 # 定义伽马校正函数
 def adjust_gamma(image, gamma=1.0):
@@ -424,9 +320,12 @@ def create_handwritten_number_image_pub(line_chars, output_path, mnist_data):
     '''根据自动化所的手写图像生成伪数据'''
 
     list_of_text = list(line_chars)
-    width = 80 * len(line_chars)
-    height = 80
-    image = Image.new('L', (width, height), 255)
+
+    width_goal = 70
+    height_goal = 70
+    off_set_max = 5
+    # 整幅图片
+    image = Image.new('L', ((width_goal + off_set_max)*len(line_chars), height_goal), 255)
 
     # 随机选择一次所有字符的图像
     selected_images = []
@@ -435,47 +334,40 @@ def create_handwritten_number_image_pub(line_chars, output_path, mnist_data):
             char_images = mnist_data[char]
             random_indices = random.randint(0, len(char_images) - 1)
 
-            # if random_font:
-            #     selected_image = char_images[random.choice(font_style)]
-            # else:
-            # #selected_image = char_images[np.random.choice(len(char_images))]
-            #     selected_image = char_images[style]
             selected_image = char_images[random_indices]
             selected_images.append(selected_image)
         else:
             print(f"未找到字符的图像：{char}")
             #raise
             #selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
-            #selected_images.append(np.ones((height, width)) * 255)  # 如果找不到，填充白色图
+            selected_images.append(np.ones((height_goal, width_goal)) * 255)  # 如果找不到，填充白色图
             list_of_text[i_c] = ""
     # 粘贴图像
-    cell_width = width // len(line_chars)
+    # 粘贴图像
     off_set_position = 0
     # 加入多样性？
     random_flag = False
     if random.choice(range(2)) == 0:
         random_flag = True
     for i, single_image in enumerate(selected_images):
-        # 调整颜色和大小
-        # 取原图尺寸
-        pic_width, pic_height = Image.fromarray(single_image).size
-        # 取随机数
-        scale_ratio = random.uniform(0.8, 1.0)
-        # 缩放之后的图片大小
-        resize_ratio = min(64/pic_width, 64/pic_height)
-        single_image = cv2.resize(single_image,
-                                  (int(pic_width * resize_ratio * scale_ratio),
-                                   int(pic_height * resize_ratio * scale_ratio)),
-                                  interpolation=cv2.INTER_LINEAR)
         single_image = Image.fromarray(single_image)
+
+        # 归一化文字部分的大小
+        single_image = crop_off_whitespace(single_image)
+        cur_width, cur_height = single_image.size
+        #single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
+        ratio = min(width_goal/cur_width, height_goal/cur_height)
+
+        single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.ANTIALIAS)
+
+
+        # 调整颜色和大小
         single_width, single_height = single_image.size
+        scale_ratio = random.uniform(0.8, 1.0)
+        scaled_w = int(single_width * scale_ratio)
+        scaled_h = int(single_height * scale_ratio)
+        single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
 
-        left_margin_single = int((cell_width - single_width)/2)
-        top_margin_single = int((height - single_height)/2)
-        single_blank = Image.new('L', (cell_width, height), 255)
-
-        single_blank.paste(single_image, (left_margin_single, top_margin_single))
-        single_image = single_blank
         # 透视变换
         if random_flag and random.choice(range(2)) == 0:
             single_image = apply_perspective_transform(single_image)
@@ -485,43 +377,48 @@ def create_handwritten_number_image_pub(line_chars, output_path, mnist_data):
             angle_ratio = random.uniform(-1.0, 1.0)
             angle = 10 * angle_ratio
             single_image = rotate_text_image(single_image, angle)
-        single_width, single_height = single_image.size
-        if single_height > height or single_width > cell_width:
-            single_image = single_image.resize((cell_width, height), Image.ANTIALIAS)
-            #single_image = single_image.resize((50, 70), Image.Resampling.LANCZOS)
+
+        cur_width, cur_height = single_image.size
+        if cur_height > height_goal or cur_width > width_goal:
+            # single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
+            ratio = min(width_goal / cur_width, height_goal / cur_height)
+            single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)), Image.ANTIALIAS)
+            #single_image = single_image.resize((single_width, height_goal), Image.Resampling.LANCZOS)
 
         # 加入划痕
         if random.choice(range(20)) == 0:
             single_image = crop_off_whitespace(single_image)
             single_image = apply_scratches(single_image)
             list_of_text[i] = 'x'
-        single_width, single_height = single_image.size
+        # 切边
+        single_image = crop_off_whitespace(single_image)
 
-        #if cell_width - single_width >= 0:
-        offset_x = random.randint(0, cell_width - single_width)
+        # 此处可加入随机性
+        single_image = single_image.resize((width_goal, height_goal), Image.ANTIALIAS)
+        single_width, single_height = single_image.size
+        offset_x = random.randint(0, off_set_max)
         ##else:
         #    offset_x = single_width - cell_width
 
-        offset_y = random.randint(int(0.5*(height - single_height)), height - single_height)
+        offset_y = random.randint(0, height_goal - single_height)
 
-        #paste_position = (i * cell_width + offset_x, offset_y)
+        # paste_position = (i * cell_width + offset_x, offset_y)
         paste_position = (off_set_position + offset_x, offset_y)
         off_set_position += offset_x + single_width
         image.paste(single_image, paste_position)
+
     # 切边
     image = crop_off_whitespace(image)
     width, height = image.size
 
     draw = ImageDraw.Draw(image)
     if random.choice(range(2)) == 0:
-        underline_y = height - random.randint(3, 7)  # 下划线的位置
+        underline_y = height - random.randint(0, 5)  # 下划线的位置
         draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
-    # 调整伽马值，尝试低于1.0的值来增加黑色区域的深度
-    gamma_value = 0.4  # 可以调整此值，0.5效果通常较为明显
-    image = adjust_gamma(image, gamma=gamma_value)
 
+    # 添加边距
     min_margin = int(0.1 * height)
-    max_margin = int(0.18 * height)
+    max_margin = int(0.15 * height)
     left_margin = random.randint(min_margin, max_margin)
     right_margin = random.randint(min_margin, max_margin)
     top_margin = random.randint(min_margin, max_margin)
@@ -532,29 +429,24 @@ def create_handwritten_number_image_pub(line_chars, output_path, mnist_data):
     larger_image.paste(image, (left_margin, top_margin))
 
     # 保存图像
-    width, height = larger_image.size
-    # 计算新的宽度以保持纵横比
-    target_height = 70
-    new_width = int((target_height / height) * width)
-    resized_image = larger_image.resize((new_width, target_height), Image.Resampling.LANCZOS)
-
     timestamp = int(time.time())
     text_new = "".join(list_of_text)
     output_file = f'{output_path}{timestamp}_{text_new}.jpg'
-    resized_image.save(output_file)
+    larger_image.save(output_file)
 
-def process_image_wrapper(args):
-    output_path, text, mnist_data,font_style = args
-    create_handwritten_number_image(text, output_path, mnist_data, font_style)
-    return output_path
+
+# def process_image_wrapper(args):
+#     output_path, text, mnist_data,font_style = args
+#     create_handwritten_number_image(text, output_path, mnist_data, font_style)
+#     return output_path
 
 if __name__ == '__main__':
     random.seed(42)
     #image_directory = '../../pseudo_chinese_images_1110'
     image_directory = './chinese_data1018/pic_chinese_char'
-    output_path = f'../../psudo_chinese_data/gen_line_print_data_1113_test/'
+    output_path = f'../../psudo_chinese_data/gen_line_print_data_1118_zidonghua/'
     random_font = False
-    random_seq = True
+    random_seq = False
     font_from = "public_zidonghua"
     #font_from = "psudo"
     os.makedirs(output_path, exist_ok=True)
@@ -570,7 +462,7 @@ if __name__ == '__main__':
     output_paths_and_texts = []
     off_set = 0
     for i in tqdm(range(1000)):
-        length = random.randint(15, 20)
+        length = random.randint(2, 10)
         # 生成一串连续的文本
         text = generate_random_line(length, off_set, random_seq)
         off_set += length

@@ -56,7 +56,7 @@ import matplotlib.font_manager
 import pickle
 
 # 定义用于保存生成图片的输出目录
-output_dir = "../../pseudo_chinese_images_1118_熠"
+output_dir = "../../pseudo_chinese_images_1123"
 os.makedirs(output_dir, exist_ok=True)
 
 # 读取字符字典
@@ -65,13 +65,21 @@ os.makedirs(output_dir, exist_ok=True)
 #
 # # 从字符字典中提取字符
 # texts = list(char_dict.keys())  # char_dict 的键是想要的字符
-char_dict = {}
-with open('char_dict.txt', 'r', encoding='utf-8') as f:
-    for line in f:
-        char, code = line.strip().split('\t')  # 按制表符分割
-        char_dict[char] = int(code)  # 将编码转换为整数
+# char_dict = {}
+# with open('char_added_1123.txt', 'r', encoding='utf-8') as f:
+#     for line in f:
+#         char, code = line.strip().split('\t')  # 按制表符分割
+#         char_dict[char] = int(code)  # 将编码转换为整数
+#
+# texts = list(char_dict.keys())
 
-texts = list(char_dict.keys())
+texts = []
+with open('char_added_1123.txt', 'r', encoding='utf-8') as f:
+    for line in f:
+        char = line.strip()
+        texts.append(char)
+
+
 
 def is_chinese_char(char):
     return '\u4e00' <= char <= '\u9fff'
@@ -177,8 +185,8 @@ print(f"有效字体数量: {len(valid_fonts)}")
 
 for font in tqdm(valid_fonts):
     for text_group in texts:
-        if text_group != "熠":
-            continue
+        # if text_group != "熠":
+        #     continue
         # image = Image.new("RGB", (image_width, image_height), color="white")
         # draw = ImageDraw.Draw(image)
 
@@ -211,7 +219,10 @@ for font in tqdm(valid_fonts):
         if not is_blank_image(image):
         # 保存图像
             # 剪裁四周多余空白
-            #image = crop_off_whitespace(image)
+            image = crop_off_whitespace(image)
+            width, height = image.size
+            ratio = min(font_size/width, font_size/height)
+            image = image.resize((int(width*ratio), int(height*ratio)), Image.ANTIALIAS)
             image_filename = os.path.join(output_dir, f"{font[1]}_{text_group}.jpg")
             image.save(image_filename)
 

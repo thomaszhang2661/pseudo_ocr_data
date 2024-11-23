@@ -340,9 +340,9 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
 
     width_goal = 70
     height_goal = 70
-
+    off_set_max = 5
     # 整幅图片
-    image = Image.new('L', (width_goal*len(line_chars), height_goal), 255)
+    image = Image.new('L', ((width_goal + off_set_max)*len(line_chars), height_goal), 255)
     # 随机选择一次所有字符的图像
     selected_images = []
     style = random.choice(font_style)
@@ -365,7 +365,6 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
             selected_images.append(np.ones((height_goal, width_goal)) * 255)  # 如果找不到，填充白色图
             list_of_text[i_c] = ""
     # 粘贴图像
-    #cell_width = width // len(line_chars)
     off_set_position = 0
     # 加入多样性？
     random_flag = False
@@ -377,16 +376,17 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
         # 归一化文字部分的大小
         single_image = crop_off_whitespace(single_image)
         #single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
-        single_image = single_image.resize((width_goal, height_goal), Image.ANTIALIAS)
+        single_width, single_height = single_image.size
+        ratio = min(height_goal/single_height, width_goal/single_height)
+        single_image = single_image.resize((int(ratio*single_width), int(ratio*single_height)), Image.ANTIALIAS)
 
 
         # 调整颜色和大小
-        # single_width, single_height = single_image.size
-        # scale_ratio = random.uniform(0.8, 1.0)
-        # scaled_w = int(single_width * scale_ratio)
-        # scaled_h = int(single_height * scale_ratio)
-        # #single_image = cv2.resize(single_image, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR)
-        # single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
+        single_width, single_height = single_image.size
+        scale_ratio = random.uniform(0.8, 1.0)
+        scaled_w = int(single_width * scale_ratio)
+        scaled_h = int(single_height * scale_ratio)
+        single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
 
         # 透视变换
         if random_flag and random.choice(range(2)) == 0:
@@ -414,7 +414,7 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
         single_image = single_image.resize((width_goal, height_goal), Image.ANTIALIAS)
         single_width, single_height = single_image.size
         # if cell_width - single_width >= 0:
-        offset_x = 0#random.randint(0, 5)
+        offset_x = random.randint(0, off_set_max)
         ##else:
         #    offset_x = single_width - cell_width
 
@@ -453,10 +453,10 @@ def create_handwritten_number_image(line_chars, output_path, mnist_data, font_st
     larger_image.save(output_file)
 
 
-def process_image_wrapper(args):
-    output_path, text, mnist_data,font_style = args
-    create_handwritten_number_image(text, output_path, mnist_data, font_style)
-    return output_path
+# def process_image_wrapper(args):
+#     output_path, text, mnist_data,font_style = args
+#     create_handwritten_number_image(text, output_path, mnist_data, font_style)
+#     return output_path
 
 if __name__ == '__main__':
     random.seed(40)
