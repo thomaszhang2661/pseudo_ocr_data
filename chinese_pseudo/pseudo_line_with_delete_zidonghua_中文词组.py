@@ -220,7 +220,7 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
 
     width_goal = 70
     height_goal = 70
-    off_set_max = 5
+    off_set_max = 10
     # 整幅图片
     image = Image.new('L', ((width_goal + off_set_max)*len(line_chars), height_goal), 255)
     gamma_value = 0.4  # 可以调整此值，0.5效果通常较为明显
@@ -243,7 +243,6 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
             selected_images.append(selected_image)
 
         else:
-            print(f"未找到字符的图像：{char}")
             #raise
             #selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
             selected_images.append(np.ones((height_goal, int(width_goal/2))) * 255)  # 如果找不到，填充白色图
@@ -269,13 +268,6 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
         #single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.Resampling.LANCZOS)
 
 
-        # 调整颜色和大小
-        single_width, single_height = single_image.size
-        scale_ratio = random.uniform(0.8, 1.0)
-        scaled_w = int(single_width * scale_ratio)
-        scaled_h = int(single_height * scale_ratio)
-        single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
-        #single_image = single_image.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
 
         # 透视变换
         if random_flag and random.choice(range(2)) == 0:
@@ -287,13 +279,23 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
             angle = 10 * angle_ratio
             single_image = rotate_text_image(single_image, angle)
 
+        # 归一化大小
+        single_image = crop_off_whitespace(single_image)
         cur_width, cur_height = single_image.size
-        if cur_height > height_goal or cur_width > width_goal:
-            # single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
-            ratio = min(width_goal / cur_width, height_goal / cur_height)
-            single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)), Image.ANTIALIAS)
-            #single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)),
-            # Image.Resampling.LANCZOS)
+        #if cur_height > height_goal or cur_width > width_goal:
+        # single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
+        ratio = min(width_goal / cur_width, height_goal / cur_height)
+        single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)), Image.ANTIALIAS)
+        #single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)),
+        # Image.Resampling.LANCZOS)
+
+        # 调整大小
+        single_width, single_height = single_image.size
+        scale_ratio = random.uniform(0.8, 1.0)
+        scaled_w = int(single_width * scale_ratio)
+        scaled_h = int(single_height * scale_ratio)
+        single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
+        #single_image = single_image.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
 
         # 加入划痕
         if random.choice(range(20)) == 0:
