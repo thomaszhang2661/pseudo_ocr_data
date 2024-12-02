@@ -10,9 +10,9 @@ import struct
 from PIL import Image
 from tqdm import tqdm
 # data文件夹存放转换后的.png文件
-data_dir = '../../pic_chinese_char/gnt1.0/'
+data_dir = '../../pic_chinese_char/gnt1.2/'
 # 路径为存放数据集解压后的.gnt文件
-train_data_dir = '../../all_chinese_char1.0/'
+train_data_dir = '../../all_chinese_char1.2/'
 # test_data_dir = os.path.join(data_dir, 'F:/Datasets/HWDB1.0/gnttest')
 
 
