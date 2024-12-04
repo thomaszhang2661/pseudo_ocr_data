@@ -9,6 +9,7 @@ import numpy as np
 import struct
 from PIL import Image
 from tqdm import tqdm
+
 # data文件夹存放转换后的.png文件
 data_dir = '../../pic_chinese_char/gnt1.2/'
 # 路径为存放数据集解压后的.gnt文件
@@ -80,7 +81,11 @@ for image, tagcode in read_from_gnt_dir(gnt_dir=train_data_dir):
     #     #     os.mkdir(dir_name)
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)  # 使用 makedirs 来确保父目录也被创建
-    im.convert('RGB').save(dir_name + '/' + str(train_counter) + '.png')
+    try:
+        im.convert('L').save(dir_name + '/' + str(train_counter) + '.png')
+    except Exception as e:
+        print(e)
+        print("tagcode_unicode=", tagcode_unicode)
     #print("train_counter=", train_counter)
     train_counter += 1
 
