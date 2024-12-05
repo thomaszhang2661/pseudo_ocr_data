@@ -1,3 +1,4 @@
+# utf-8
 # # 先校验一下是否有字典之外的汉字
 # # 加载需要制作哪些汉字的字典
 # char_dict = {}
@@ -46,6 +47,13 @@ from gen_scratch import apply_scratches
 from image_operation import *
 import pickle
 import math
+from mapping_punct import chinesepun2englishpun
+
+
+# 获取当前工作目录
+current_working_directory = os.getcwd()
+
+print("当前工作路径是:", current_working_directory)
 
 length_max = 15
 
@@ -55,10 +63,11 @@ length_max = 15
 #     char_dict = pickle.load(f)
 # # 从字符字典中提取字符
 # dict_list = list(char_dict.keys())
+
 char_dict = {}
-with open('./char_dict.txt', 'r', encoding='utf-8') as f:
+with open('./merged_dict.txt', 'r', encoding='utf-8') as f:
     for line in f:
-        char, code = line.strip().split('\t')  # 按制表符分割
+        char, code = line.strip().split(' : ')  # 按制表符分割
         char_dict[char] = int(code) - 1  # 将编码转换为整数
 
 dict_list = list(char_dict.keys())
@@ -69,7 +78,7 @@ zidonghua_dict_reverse = {}
 
 with open('merged_dict.txt', 'r', encoding='utf-8') as f:
     for line in f:
-        char, code = line.strip().split('\t')  # 按制表符分割
+        char, code = line.strip().split(' : ')  # 按制表符分割
         zidonghua_dict[char] = int(code)  # 将编码转换为整数
         zidonghua_dict_reverse[int(code)] = char
 zidonghua_list = list(zidonghua_dict.keys())
@@ -77,7 +86,7 @@ zidonghua_list = list(zidonghua_dict.keys())
 chinese_words = []
 with open('./all_chinese_dicts_all.txt', 'r', encoding='utf-8') as f:
     for line in f:
-        chinese_words.append(line.strip())
+        chinese_words.append(chinesepun2englishpun(line.strip()))
 
 
 # 定义伽马校正函数
@@ -182,13 +191,17 @@ def load_local_images_pub(image_directory):
     zidonghua_data = {}
 
     # 获取所有子文件夹的列表
-    sub_files_list = [sub_files for sub_files in os.listdir(image_directory)
-                      if len(sub_files) == 5 and sub_files.isdigit()]
+    # sub_files_list = [sub_files for sub_files in os.listdir(image_directory)
+    #                   if len(sub_files) == 5 and sub_files.isdigit()]
 
+    if os.path.exists(image_directory):
+        sub_files_list = [sub_files for sub_files in os.listdir(image_directory)]
+    else:
+        print(f"Directory {image_directory} not found.")
     # 遍历所有有效子文件夹
     for sub_files in tqdm(sub_files_list, desc="加载图像"):
         # 获取对应的字符
-        word = zidonghua_dict_reverse.get(int(sub_files), None)
+        word = zidonghua_dict_reverse.get(int(sub_files[:-4]), None)
         if word is None:  # 如果字典中没有对应的字符，跳过
             continue
 
@@ -235,12 +248,12 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
             # 调整伽马值，尝试低于1.0的值来增加黑色区域的深度
             selected_image = adjust_gamma(selected_image, gamma=gamma_value)
             selected_images.append(selected_image)
-        elif char in mnist_data:
-            char_images = mnist_data[char]
-            selected_image = char_images.get(random.choice(font_style),
-                                                 char_images.get(random.choice(list(char_images.keys()))))
-
-            selected_images.append(selected_image)
+        # elif char in mnist_data:
+        #     char_images = mnist_data[char]
+        #     selected_image = char_images.get(random.choice(font_style),
+        #                                          char_images.get(random.choice(list(char_images.keys()))))
+        #
+        #     selected_images.append(selected_image)
 
         else:
             #raise
@@ -264,8 +277,8 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
         cur_width, cur_height = single_image.size
         ratio = min(width_goal/cur_width, height_goal/cur_height)
 
-        single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.ANTIALIAS)
-        #single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.Resampling.LANCZOS)
+        #single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.ANTIALIAS)
+        single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.Resampling.LANCZOS)
 
 
 
@@ -285,17 +298,17 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
         #if cur_height > height_goal or cur_width > width_goal:
         # single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
         ratio = min(width_goal / cur_width, height_goal / cur_height)
-        single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)), Image.ANTIALIAS)
-        #single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)),
-        # Image.Resampling.LANCZOS)
+        #single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)), Image.ANTIALIAS)
+        single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)),
+        Image.Resampling.LANCZOS)
 
         # 调整大小
         single_width, single_height = single_image.size
         scale_ratio = random.uniform(0.8, 1.0)
         scaled_w = int(single_width * scale_ratio)
         scaled_h = int(single_height * scale_ratio)
-        single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
-        #single_image = single_image.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
+        #single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
+        single_image = single_image.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
 
         # 加入划痕
         if random.choice(range(20)) == 0:
@@ -340,10 +353,14 @@ def create_handwritten_number_image_pub(line_chars, output_path, zidonghua_data,
     larger_image.paste(image, (left_margin, top_margin))
 
     # 保存图像
+
     timestamp = int(time.time())
     text_new = "".join(list_of_text)
     output_file = f'{output_path}{timestamp}_{text_new}.jpg'
-    larger_image.save(output_file)
+    try:
+        larger_image.save(output_file)
+    except:
+        print("Error saving image", output_file)
 
 
 
@@ -351,13 +368,15 @@ if __name__ == '__main__':
     random.seed(40)
     #image_directory = './single_font/pseudo_chinese_images_1111_checked'
     #image_font_directory = '../../pseudo_chinese_images_1111_checked/'
-    image_font_directory = '../../pseudo_chinese_images_1111_checked/'
+    #image_font_directory = '../../pseudo_chinese_images_1111_checked/'
     #image_pub_directory = './chinese_data1018/pic_chinese_char'
-    image_pub_directory = '../../pic_chinese_char/gnt_all'
+    image_pub_directory = '../../pic_chinese_char/gnt_all/'.replace('/', os.sep)
 
     #output_path = './Chinese-app-digital/data/data_train/'
     #output_path = f'./psudo_chinese_data/gen_line_print_data_1110/'
-    output_path = '../../psudo_chinese_data/gen_line_print_data_1204_hw/'
+    output_path = '../../psudo_chinese_data/gen_line_print_data_1204_hw/'.replace('/', os.sep)
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
     random_font = True
     random_seq = True
     os.makedirs(output_path, exist_ok=True)
@@ -365,8 +384,8 @@ if __name__ == '__main__':
     # 加载单个汉字图片
     zidonghua_data = load_local_images_pub(image_pub_directory)
 
-    font_style, mnist_data = load_local_images(image_font_directory)
-
+    #font_style, mnist_data = load_local_images(image_font_directory)
+    mnist_data = ''
     output_paths_and_texts = []
     off_set = 0
     for i in tqdm(range(1000)):

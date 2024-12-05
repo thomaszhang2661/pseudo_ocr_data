@@ -11,11 +11,12 @@ from PIL import Image
 from tqdm import tqdm
 
 # data文件夹存放转换后的.png文件
-data_dir = '../../pic_chinese_char/gnt1.2/'
+data_dir = '../../pic_chinese_char/gnt1.1_new/'
 # 路径为存放数据集解压后的.gnt文件
-train_data_dir = '../../all_chinese_char1.2/'
+train_data_dir = '../../all_chinese_char1.1/'
 # test_data_dir = os.path.join(data_dir, 'F:/Datasets/HWDB1.0/gnttest')
-
+if not os.path.exists(train_data_dir):
+    os.makedirs(train_data_dir)
 
 def read_from_gnt_dir(gnt_dir=train_data_dir):
     def one_file(f):

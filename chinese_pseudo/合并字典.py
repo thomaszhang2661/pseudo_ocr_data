@@ -45,7 +45,8 @@ for file in files:
             if key not in merged_dict:
                 merged_dict.append(key)
                 mapping[file].append({key: [value,len(merged_dict)]})
-
+            else:
+                mapping[file].append({key: [value, merged_dict.index(key) + 1]})
 # 将合并后的字典保存为新文件
 with open('merged_dict.txt', 'w', encoding='utf-8') as output_file:
     for i_word, word in enumerate(merged_dict):

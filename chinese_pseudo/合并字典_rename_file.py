@@ -14,8 +14,8 @@ def rename_files(mapping_file, target_directory):
 
     # 遍历映射，重命名文件
     for file, items in mapping.items():
-        # if file != group_name:
-        #    continue
+        if file != group_name:
+           continue
         for item in reversed(items):
             for key, value in item.items():
                 # 获取对应的文件
