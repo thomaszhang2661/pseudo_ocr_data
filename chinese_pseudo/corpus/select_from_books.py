@@ -89,8 +89,8 @@ for file in os.listdir(books_path):
 
 # 选取次数少的字
 #result = []
-for key, value in tqdm(dict_list.items()):
-    if value < THRETHOLD:
+for idx, (key, value) in tqdm(enumerate(dict_list.items())):
+    if idx >= 170 and value < THRETHOLD:
         temp_list = []
         for xdhy_key, xdhy_value in book_dict.items():
 

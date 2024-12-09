@@ -2,10 +2,12 @@
 import re
 
 # 正则表达式匹配拼音
-#pattern = r'([a-zA-ZüÜāáǎàīíǐìēéěèōóǒòūúǔùüɡɡ])'
+#pattern = r'([a-zA-ZüÜǖǘǚǜāáǎàīíǐìēéěèōóǒòūúǔùüɡɡ])'
 
 # 特殊字符
-symbols = r'(["ç", "ø", "ł", "ŋ", "ʃ", "ʒ", "ɪ", "ʌ", "ə", "θ", "ð","ɒ", "β", "ϕ", "κ", "π", "Ω", "δ", "⅓", "℅", "⌘")'
+
+symbols = r'[çøłŋʃʒɪʌəθðɒβϕκπΩδ⅓℅⌘▲▼ⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫ]'
+
 def chinesepun2englishpun(string):
     # E_pun = u',.!?[]()<>""\'~:@#$¥%'
     # C_pun = u'，。！？【】（）《》“”‘~：＠＃＄￥％'
@@ -23,13 +25,14 @@ def chinesepun2englishpun(string):
     #string = string.replace('/', '\\')
     #return string
 
-    E_pun = u'••,!?[][]()<><>‘ ~::---@#$￥%|;=/~aaeenoII2福'
-    C_pun = u'·•，！？【】［］（）〈〉＜＞\'~：ː—－­＠＃＄￥％｜；＝／～ɑàéëñöⅡ₂褔'
+    E_pun = u'••,!?“”[][][]()()<><>‘~:::----@#$￥%||;=/~aaeeno2福出内'
+    C_pun = u'·•，！？「」【】〖〗［］（）〔〕〈〉＜＞\'~：ː∶—－─­＠＃＄￥％｜∣；＝／～ɑàéëñö₂褔岀內'
+    #print(len(E_pun), len(C_pun))
     table = {ord(f): ord(t) for f, t in zip(C_pun, E_pun)}
     string = string.translate(table)
-    string = string.replace('…', '...')
-    string = re.sub(r'\s+', '', string)
-    srting = re.sub(symbols,"", string)
+    #string = string.replace('…', '...')
+    #string = re.sub(r'\s+', '', string)
+    string = re.sub(symbols,"", string)
     #string = string.replace('/', '\\')
 
     return string
