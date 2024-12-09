@@ -51,8 +51,8 @@
 
 import os
 import re
-path_input = 'xdhy_corpus2.txt'
-path_output = 'xdhy_corpus2_standard.txt'
+path_input = 'special_dict/xdhy_corpus2.txt'
+path_output = 'special_dict/xdhy_corpus2_standard.txt'
 pattern = r'([a-zA-ZüÜǖǘǚǜāáǎàīíǐìēéěèōóǒòūúǔùüɡɡ])'
 
 result = []

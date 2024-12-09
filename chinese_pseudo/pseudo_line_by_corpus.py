@@ -326,7 +326,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     off_set_position = 0
     # 加入多样性？
     random_flag = False
-    if random.choice(range(2)) == 0:
+    if random.choice(range(1)) == 0:
         random_flag = True
     for i, single_image in enumerate(selected_images):
         single_image = Image.fromarray(single_image)
@@ -468,7 +468,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     image = crop_off_whitespace(image, direction=1)
     width, height = image.size
     draw = ImageDraw.Draw(image)
-    if random.choice(range(1)) == 0:
+    if random.choice(range(3)) != 0:
         underline_y = height_goal - random.randint(0, 5)  # 下划线的位置
         draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
 
@@ -514,8 +514,8 @@ if __name__ == '__main__':
 
     #output_path = './Chinese-app-digital/data/data_train/'
     #output_path = f'./psudo_chinese_data/gen_line_print_data_1110/'
-    output_path = '../../psudo_chinese_data/gen_line_print_data_1208_hw/'.replace('/', os.sep)
-    label_file = '../../psudo_chinese_data/gen_line_print_data_1208_hw/label.json'.replace('/', os.sep)
+    output_path = '../../psudo_chinese_data/gen_line_print_data_1209_hw/'.replace('/', os.sep)
+    label_file = '../../psudo_chinese_data/gen_line_print_data_1209_hw/label.json'.replace('/', os.sep)
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     random_font = True
@@ -525,8 +525,8 @@ if __name__ == '__main__':
     # 加载单个汉字图片
     zidonghua_data = load_local_images_pub(image_pub_directory)
 
-    #读取corpus #'all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt'
-    corpus_list = ['xdhy_corpus_book.txt']
+    #读取corpus #'all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt','xdhy_corpus_book.txt'
+    corpus_list = ['random_补充.txt']
     corpus_path = './corpus/'
     corpus_content = []
     label_content = {}
