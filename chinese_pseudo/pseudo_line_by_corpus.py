@@ -295,7 +295,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     # 随机选择一次所有字符的图像
     selected_images = []
     for i_c, char in enumerate(line_chars):
-        if char not in zidonghua_data or char == "/":
+        if char not in zidonghua_data:
             list_of_text[i_c] = " "
             #print("warning not in dict", char, line_chars)
             continue
@@ -500,6 +500,10 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     try:
         larger_image.save(output_file)
         label_content[f'{timestamp}_{i_font}_{index_line}'] = text_new
+        #temp_dict = {}
+        #temp_dict[f'{timestamp}_{i_font}_{index_line}'] = text_new
+        with open(f'{timestamp}_{i_font}_{index_line}.txt', 'w', encoding='utf-8') as f:
+            f.write(text_new)
     except:
         print("Error saving image", output_file)
 
