@@ -449,8 +449,10 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
                                       int(height_goal - single_height * 0.5))
 
         elif list_of_text[i] in punct_dict:
-            offset_y = random.randint(height_goal - single_height - int(0.1 * height_goal),
-                                      height_goal - single_height)
+            # offset_y = random.randint(height_goal - single_height - int(0.1 * height_goal),
+            #                           height_goal - single_height)
+            offset_y = random.randint(int(0.5 * height_goal - single_height * 0.5 - 0.1 * single_height),
+                                      int(0.5 * height_goal - single_height * 0.5 + 0.1 * single_height))
         else:
             offset_y = random.randint(int(height_goal * 0.5 - single_height * 0.5 - 0.1 * single_height),
                                       int(height_goal * 0.5 - single_height * 0.5 + 0.1 * single_height))
