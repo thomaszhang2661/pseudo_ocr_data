@@ -1,13 +1,64 @@
-1 初中、高中。词条信息
+1 初中、高中。词条信息.
+    来源在另一个项目，本项目输入文件为 all_chinese_dicts_all.txt, all_english_dicts_all.txt,
+    输出为_standard.txt
+    脚本：整理词典数据_all_dict.py
+
 2 根据现代汉语词典，词条信息，挑选合适的词条：根据单字搜索，计算每个key和value的总词频选择小的加入。
+    输入：special_dict/XDHYCD7th.txt
+    输出：XDHYCD_dictionary.json
+    脚本：处理xdhy字典.py
+    输入：XDHYCD_dictionary.json
+    输出： xdhy_corpus2.txt
+    脚本：select_from_XDHYCD.py
+    输入：xdhy_corpus2.txt
+    输出：xdhy_corpus2_standard.txt
+    脚本：整理词典数据_all_dict.py
+
+2.1 根据新华字典，词条信息，挑选合适的词条：根据单字搜索，计算每个key和value的总词频选择小的加入。
+    输入：special_dict/新华词典(47200条,商务2001).txt
+    输出：xhzd_dictionary.json
+    脚本：处理xhzd字典.py
+    输入：xhzd_dictionary.json
+    输出： xhzd_corpus2.txt
+    脚本：select_from_XHZD.py
+    输入：xhzd_corpus2.txt
+    输出：xhzd_corpus2_standard.txt
+    脚本：整理词典数据_all_dict.py
+
+2.2 100年新词新语。
+    输入：special_dict/100年新词新语大辞典.txt
+    输出：100年汉语新词新语大辞典_dictionary.json
+    脚本：处理100年汉语新词新语大辞典.py
+    输入：100年汉语新词新语大辞典_dictionary.json,all_corpus_standard.txt
+    输出： 100年汉语新词新语大辞典_corpus.txt
+    脚本：select_from_100年汉语新词新语大辞典.py
+
+2.3 汉语大词典(简体精排,339937条).txt
+    输入：special_dict/汉语大词典(简体精排,339937条).txt
 
 3 生僻字，根据金庸和古龙的小说，在生僻字周围+-5的范围截取内容加入。
-4 没出现的字直接把单个字扔进去训练。
+    输入：selected_books 文件夹
+    输出：xdhy_corpus_books.txt
+    脚本：select_from_books.py
+    输入：xdhy_corpus_books.txt
+    输出：xdhy_corpus_books_standard.txt
+    脚本：整理词典数据_all_dict.py
 
-这里有很多书
-https://github.com/hankinghu/literature-books/tree/master
+4 没出现的字直接把单个字扔进去训练。 少于10次的，补足到10次。
+
+
 
 #图片生成过程
 1 每个图片一拖5或者一拖10. （先跳过这步骤，可以放到同一个corpus里面相同一套字体的变形）。
 2 生成图片时，顺序使用每个字的字体。(如何处理打印字体在样本中权重不够的问题？最后一个epoch，用打印体单独再训练一次？)
 3 未使用的字体，重复使用对应字体的corpus。
+
+视野用64*1600， 小说上限设到30左右。英文cut一半。
+
+总数控制在6万行左右。
+
+图书资源
+https://github.com/hankinghu/literature-books/tree/master
+词典资源
+https://github.com/colordict/colordict.github.io/tree/master/download
+https://forum.freemdict.com/t/topic/9775
