@@ -53,33 +53,24 @@ import random
 import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 import matplotlib.font_manager
-import pickle
 
-# 定义用于保存生成图片的输出目录
-output_dir = "../../pseudo_chinese_images_1123"
-os.makedirs(output_dir, exist_ok=True)
 
-# 读取字符字典
-# with open('chinese_data1018/char_dict', 'rb') as f:
-#     char_dict = pickle.load(f)
-#
-# # 从字符字典中提取字符
-# texts = list(char_dict.keys())  # char_dict 的键是想要的字符
-# char_dict = {}
-# with open('char_added_1123.txt', 'r', encoding='utf-8') as f:
+
+# texts = []
+# texts_dict ={}
+# with open('merged_dict.txt', 'r', encoding='utf-8') as f:
 #     for line in f:
-#         char, code = line.strip().split('\t')  # 按制表符分割
-#         char_dict[char] = int(code)  # 将编码转换为整数
-#
-# texts = list(char_dict.keys())
+#         char,value = line.strip().split(" : ")
+#         texts_dict[char] = value
+#         texts.append(char)
 
-texts = []
-with open('char_added_1123.txt', 'r', encoding='utf-8') as f:
+
+texts_dict = {}
+with open('merged_dict.txt', 'r', encoding='utf-8') as f:
     for line in f:
-        char = line.strip()
-        texts.append(char)
-
-
+        # 使用 split() 和 strip() 来分割和去除换行符
+        char, value = line.strip().split(" : ", 1)
+        texts_dict[char] = value
 
 def is_chinese_char(char):
     return '\u4e00' <= char <= '\u9fff'
@@ -126,9 +117,15 @@ font_size = 70
 # # 用户字体目录（请根据实际路径进行修改）
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Library/Fonts")
 # user_font_dir = os.path.expanduser("/System/Library/Fonts")
-user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
+#user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
+user_font_dir = "/Volumes/Samsung SSD/字体/办公常用字体-网盘/"
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected/")
 
+# 定义用于保存生成图片的输出目录
+#output_dir = "../../pseudo_chinese_images_1213"
+output_dir = "/Volumes/Samsung SSD/字体/1213_font/"
+
+os.makedirs(output_dir, exist_ok=True)
 # 获取系统中已安装的字体列表
 installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=user_font_dir, fontext='ttf')
 #installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
@@ -183,8 +180,8 @@ print(f"有效字体数量: {len(valid_fonts)}")
 
 # 遍历文本列表，为每个文本使用不同的字体生成图片并保存
 
-for font in tqdm(valid_fonts):
-    for text_group in texts:
+for ind_f, font in tqdm(enumerate(valid_fonts), total=len(valid_fonts)):
+    for text_group, index in texts_dict.items():
         # if text_group != "熠":
         #     continue
         # image = Image.new("RGB", (image_width, image_height), color="white")
@@ -193,6 +190,11 @@ for font in tqdm(valid_fonts):
         # 计算文本的大小和位置
         #text_width, text_height = draw.textsize(text_group, font=font[0])
         #text_width0, text_height_0 = draw.textsize(" ", font=font[0])
+        sub_file_name = 1000 + int(index)
+        sub_path = os.path.join(output_dir, str(sub_file_name))
+        os.makedirs(sub_path, exist_ok=True)
+
+
         text_width, text_height = font[0].getsize(text_group)
         # 动态计算图片尺寸
         if text_width == 0 or text_height == 0:
@@ -221,10 +223,14 @@ for font in tqdm(valid_fonts):
             # 剪裁四周多余空白
             image = crop_off_whitespace(image)
             width, height = image.size
-            ratio = min(font_size/width, font_size/height)
-            image = image.resize((int(width*ratio), int(height*ratio)), Image.ANTIALIAS)
-            image_filename = os.path.join(output_dir, f"{font[1]}_{text_group}.jpg")
-            image.save(image_filename)
+            #ratio = min(font_size/width, font_size/height)
+            #image = image.resize((int(width*ratio), int(height*ratio)), Image.ANTIALIAS)
+            image_filename = os.path.join(output_dir, sub_path, f"{font[1]}_{ind_f}_{index}.jpg")
+            try:
+                image.save(image_filename)
+            except Exception as e:
+                print(f"Error saving image: {image_filename}")
+                print(e)
 
             # 打印生成的信息
             #print(f"生成图像 {image_filename}，文本: {text_group}，字体: {font[1]}")
