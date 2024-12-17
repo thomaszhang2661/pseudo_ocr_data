@@ -8,7 +8,6 @@ import pickle
 from tqdm import tqdm
 import numpy as np
 
-
 # 加载需要制作哪些汉字的字典
 # with open('chinese_data1018/char_dict', 'rb') as f:
 #     char_dict = pickle.load(f)
@@ -50,11 +49,9 @@ import numpy as np
 import regex as re
 import os
 import random
-import pandas as pd
+#import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 import matplotlib.font_manager
-
-
 
 # texts = []
 # texts_dict ={}
@@ -72,8 +69,10 @@ with open('merged_dict.txt', 'r', encoding='utf-8') as f:
         char, value = line.strip().split(" : ", 1)
         texts_dict[char] = value
 
+
 def is_chinese_char(char):
     return '\u4e00' <= char <= '\u9fff'
+
 
 def is_blank_image(image, threshold=5):
     pixels = np.array(image)
@@ -87,26 +86,63 @@ def is_blank_image(image, threshold=5):
         return True
     return False
 
+
+# def crop_off_whitespace(image):
+#     # 转换为NumPy数组
+#     # 将图像转换为灰度
+#     gray_image = image.convert('L')
+#     image_array = np.array(gray_image)
+#     threshold = 220
+#     # 计算每一行和每一列的灰度值之和
+#     horizontal_sum = np.sum(image_array < threshold, axis=1)
+#     vertical_sum = np.sum(image_array < threshold, axis=0)
+#
+#     # 找到上边界和下边界
+#     top = np.argmax(horizontal_sum > 0)
+#     bottom = len(horizontal_sum) - np.argmax(horizontal_sum[::-1] > 0)
+#
+#     # 找到左边界和右边界
+#     left = np.argmax(vertical_sum > 0)
+#     right = len(vertical_sum) - np.argmax(vertical_sum[::-1] > 0)
+#
+#     # 裁剪图像
+#     cropped_image = image.crop((left, top, right, bottom))
+#     return cropped_image
+
+
 def crop_off_whitespace(image):
-    # 转换为NumPy数组
-    # 将图像转换为灰度
+    # 转换为灰度图像
     gray_image = image.convert('L')
+
+    # 转为NumPy数组
     image_array = np.array(gray_image)
-    threshold = 220
-    # 计算每一行和每一列的灰度值之和
+
+    # 动态计算阈值或固定阈值
+    threshold = np.mean(image_array)
+
+    # 计算每一行和列的灰度值之和
     horizontal_sum = np.sum(image_array < threshold, axis=1)
     vertical_sum = np.sum(image_array < threshold, axis=0)
 
-    # 找到上边界和下边界
-    top = np.argmax(horizontal_sum > 0)
-    bottom = len(horizontal_sum) - np.argmax(horizontal_sum[::-1] > 0)
+    # 查找非空白行和列
+    rows = np.where(horizontal_sum > 0)[0]
+    cols = np.where(vertical_sum > 0)[0]
 
-    # 找到左边界和右边界
-    left = np.argmax(vertical_sum > 0)
-    right = len(vertical_sum) - np.argmax(vertical_sum[::-1] > 0)
+    # 检查是否存在非空白区域
+    if rows.size == 0 or cols.size == 0:
+        return image  # 如果全是空白，返回原图
+
+    # 获取裁剪边界
+    top, bottom = rows[0], rows[-1] + 1
+    left, right = cols[0], cols[-1] + 1
 
     # 裁剪图像
     cropped_image = image.crop((left, top, right, bottom))
+
+    # 恢复原图像模式
+    if image.mode != 'L':
+        cropped_image = cropped_image.convert(image.mode)
+
     return cropped_image
 
 # 设置图片尺寸和字体大小
@@ -118,18 +154,23 @@ font_size = 70
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Library/Fonts")
 # user_font_dir = os.path.expanduser("/System/Library/Fonts")
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
-user_font_dir = "/Volumes/Samsung SSD/字体/办公常用字体-网盘/"
+user_font_dir = "C:/Users/ThomasZhang/Downloads/字体/办公常用字体-网盘"  #"/Volumes/Samsung SSD/字体/办公常用字体-网盘/"
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected/")
 
 # 定义用于保存生成图片的输出目录
 #output_dir = "../../pseudo_chinese_images_1213"
-output_dir = "/Volumes/Samsung SSD/字体/1213_font/"
+output_dir = "../../pseudo_chinese_images_1216"  #"/Volumes/Samsung SSD/字体/1213_font/"
 
 os.makedirs(output_dir, exist_ok=True)
 # 获取系统中已安装的字体列表
-installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=user_font_dir, fontext='ttf')
+installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=user_font_dir)
 #installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')
 
+# for i_f,file in enumerate(os.listdir(user_font_dir)):
+#     old_name = os.path.join(user_font_dir, file)
+#     ending = file.split('.')[-1]
+#     new_name = os.path.join(user_font_dir, f"{i_f}.{ending}")
+#     os.rename(old_name, new_name)
 
 # 列出所有已安装的字体
 font_list = matplotlib.font_manager.findSystemFonts()
@@ -194,8 +235,10 @@ for ind_f, font in tqdm(enumerate(valid_fonts), total=len(valid_fonts)):
         sub_path = os.path.join(output_dir, str(sub_file_name))
         os.makedirs(sub_path, exist_ok=True)
 
+        #text_width, text_height = font[0].getsize(text_group)
+        text_width, text_height = font[0].getbbox(text_group)[2] - font[0].getbbox(text_group)[0], \
+                                  font[0].getbbox(text_group)[3] - font[0].getbbox(text_group)[1]
 
-        text_width, text_height = font[0].getsize(text_group)
         # 动态计算图片尺寸
         if text_width == 0 or text_height == 0:
             continue
@@ -212,20 +255,28 @@ for ind_f, font in tqdm(enumerate(valid_fonts), total=len(valid_fonts)):
 
         # 绘制文本
         # if 语句确保字体没问题，否则可能出现空白图片
-        if font[0].getsize(text_group)[0] > 0:
+        # if font[0].getsize(text_group)[0] > 0:
+        #     draw.text((x, y), text_group, fill="black", font=font[0])
+        # else:
+        #     continue
+        bbox = font[0].getbbox(text_group)
+        text_width = bbox[2] - bbox[0]  # right - left
+
+        if text_width > 0:
             draw.text((x, y), text_group, fill="black", font=font[0])
         else:
             continue
 
-
         if not is_blank_image(image):
-        # 保存图像
+            # 保存图像
             # 剪裁四周多余空白
             image = crop_off_whitespace(image)
             width, height = image.size
             #ratio = min(font_size/width, font_size/height)
             #image = image.resize((int(width*ratio), int(height*ratio)), Image.ANTIALIAS)
-            image_filename = os.path.join(output_dir, sub_path, f"{font[1]}_{ind_f}_{index}.jpg")
+            #image_filename = os.path.join(output_dir, sub_path, f"{font[1]}_{ind_f}_{index}.jpg")
+            image_filename = os.path.join(sub_path, f"{font[1]}_{ind_f}_{index}.jpg")
+
             try:
                 image.save(image_filename)
             except Exception as e:
@@ -285,4 +336,3 @@ for ind_f, font in tqdm(enumerate(valid_fonts), total=len(valid_fonts)):
 # print(f"有效字体数量: {len(valid_fonts)}")
 
 ######################################
-

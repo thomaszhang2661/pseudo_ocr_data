@@ -99,27 +99,27 @@ for char in C_pun:
 
 # 检查corpus中的字符
 # 读取corpus
-# corpus_list = ['all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt']
-# corpus_path = './corpus/'
-#
-#
-# # for file in corpus_list:
-#     print(file)
-#
-#     path_corpus = os.path.join(corpus_path, file)
-#     chinese_words = []
-#     with open(path_corpus, 'r', encoding='utf-8') as f:
-#         for line in f:
-#             translation = chinesepun2englishpun(line.strip())
-#             chinese_words.append(translation)
-#             # 检查是否有不在字典中的字符
-#             for char in translation:
-#                 # if char not in zidonghua_dict:
-#                 #     print('waring', char, translation)
-#                 #     with open('需要添加的汉字', 'r', encoding="utf-8") as f:
-#                 #         if char not in f.read():
-#                 #             with open('需要添加的汉字', 'a', encoding="utf-8") as f:
-#                 #                 f.write(char+'\n')
+#corpus_list = ['all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt']
+corpus_list = ['all_corpus_standard.txt']
+corpus_path = './corpus/'
+
+for file in corpus_list:
+    print(file)
+
+    path_corpus = os.path.join(corpus_path, file)
+    chinese_words = []
+    with open(path_corpus, 'r', encoding='utf-8') as f:
+        for line in tqdm(f, desc="加载corpus",total=len(f.)):
+            translation = chinesepun2englishpun(line.strip())
+            chinese_words.append(translation)
+            # 检查是否有不在字典中的字符
+            for char in translation:
+                if char not in zidonghua_dict:
+                    #print('waring', char, translation)
+                    with open('需要添加的汉字', 'r', encoding="utf-8") as f:
+                        if char not in f.read():
+                            with open('需要添加的汉字', 'a', encoding="utf-8") as f:
+                                f.write(char+'\n')
 
 
 
@@ -532,7 +532,7 @@ if __name__ == '__main__':
     zidonghua_data = load_local_images_pub(image_pub_directory)
 
     #读取corpus #'all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt','xdhy_corpus_book.txt'
-    corpus_list = ['random_补充.txt']
+    corpus_list = ['all_corpus_standard.txt']
     corpus_path = './corpus/'
     corpus_content = []
     label_content = {}
