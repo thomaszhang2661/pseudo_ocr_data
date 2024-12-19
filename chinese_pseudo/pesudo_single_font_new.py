@@ -21,15 +21,15 @@ import matplotlib.font_manager
 
 
 texts_dict = {}
-with open('merged_dict.txt', 'r', encoding='utf-8') as f:
+with open('merged_dict_new.txt', 'r', encoding='utf-8') as f:
     for line in f:
         # 使用 split() 和 strip() 来分割和去除换行符
         char, value = line.strip().split(" : ", 1)
         texts_dict[char] = value
 
 
-def is_chinese_char(char):
-    return '\u4e00' <= char <= '\u9fff'
+# def is_chinese_char(char):
+#     return '\u4e00' <= char <= '\u9fff'
 
 
 def is_blank_image(image, threshold=5):
@@ -53,8 +53,8 @@ def crop_off_whitespace(image):
     image_array = np.array(gray_image)
 
     # 动态计算阈值或固定阈值
-    threshold = np.max(image_array)
-    #threshold =
+    #threshold = np.max(image_array)
+    threshold = 100
     # 计算每一行和列的灰度值之和
     horizontal_sum = np.sum(image_array < threshold, axis=1)
     vertical_sum = np.sum(image_array < threshold, axis=0)
@@ -68,9 +68,18 @@ def crop_off_whitespace(image):
         return image  # 如果全是空白，返回原图
 
     # 获取裁剪边界
-    top, bottom = rows[0], rows[-1] + 5
-    left, right = cols[0], cols[-1] + 1
+    # 获取裁剪边界
+    top, bottom = rows[0], rows[-1]
+    left, right = cols[0], cols[-1]
 
+    # 计算适当的边距，避免裁剪掉内容
+    h_margin = max(0, int((bottom - top) * 0.05))  # 边距可以调整为5%
+    w_margin = max(0, int((right - left) * 0.05))  # 边距可以调整为5%
+
+    top = max(0, top - h_margin)
+    bottom = min(image_array.shape[0], bottom + h_margin)
+    left = max(0, left - w_margin)
+    right = min(image_array.shape[1], right + w_margin)
     # 裁剪图像
     cropped_image = image.crop((left, top, right, bottom))
 
@@ -91,13 +100,14 @@ font_size = 70
 # user_font_dir = os.path.expanduser("/System/Library/Fonts")
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
 #user_font_dir = "C:/Users/ThomasZhang/Downloads/办公常用字体-网盘"  #"/Volumes/Samsung SSD/字体/办公常用字体-网盘/"
-user_font_dir = "D:/字体/selected_hw"
+#user_font_dir = "D:/字体/selected_hw"
+user_font_dir = "/database/selected_hw/"
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected/")
 
 # 定义用于保存生成图片的输出目录
 #output_dir = "../../pseudo_chinese_images_1213"
-output_dir = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_1218/"  #"/Volumes/Samsung SSD/字体/1213_font/"
-
+#output_dir = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_1218/"  #"/Volumes/Samsung SSD/字体/1213_font/"
+output_dir = "/database/single_font_1218/"
 os.makedirs(output_dir, exist_ok=True)
 # 获取系统中已安装的字体列表
 installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=user_font_dir)
@@ -148,7 +158,9 @@ print(f"有效字体数量: {len(valid_fonts)}")
 
 for ind_f, font in tqdm(enumerate(valid_fonts), total=len(valid_fonts)):
     for text_group, index in texts_dict.items():
-        sub_file_name = 1000 + int(index)
+        sub_file_name = int(index)
+        sub_file_name = f"{sub_file_name:05d}"
+        sub_file_name = sub_file_name+"_fnt"
         sub_path = output_dir + str(sub_file_name) #os.path.join(output_dir, str(sub_file_name))
         os.makedirs(sub_path, exist_ok=True)
         sub_path = sub_path + '/'
