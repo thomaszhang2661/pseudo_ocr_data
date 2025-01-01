@@ -91,12 +91,13 @@ font_size = 70
 # user_font_dir = os.path.expanduser("/System/Library/Fonts")
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
 #user_font_dir = "C:/Users/ThomasZhang/Downloads/办公常用字体-网盘"  #"/Volumes/Samsung SSD/字体/办公常用字体-网盘/"
-user_font_dir = "D:/字体/selected_hw"
+#user_font_dir = "D:/字体/selected_hw"
+user_font_dir =  "C:/Users/ThomasZhang/Desktop/selected_hw_1"
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected/")
 
 # 定义用于保存生成图片的输出目录
 #output_dir = "../../pseudo_chinese_images_1213"
-output_dir = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_1218/"  #"/Volumes/Samsung SSD/字体/1213_font/"
+output_dir = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_1231/"  #"/Volumes/Samsung SSD/字体/1213_font/"
 
 os.makedirs(output_dir, exist_ok=True)
 # 获取系统中已安装的字体列表
@@ -148,7 +149,7 @@ print(f"有效字体数量: {len(valid_fonts)}")
 
 for ind_f, font in tqdm(enumerate(valid_fonts), total=len(valid_fonts)):
     for text_group, index in texts_dict.items():
-        sub_file_name = 1000 + int(index)
+        sub_file_name = 2000 + int(index)
         sub_path = output_dir + str(sub_file_name) #os.path.join(output_dir, str(sub_file_name))
         os.makedirs(sub_path, exist_ok=True)
         sub_path = sub_path + '/'
@@ -161,8 +162,8 @@ for ind_f, font in tqdm(enumerate(valid_fonts), total=len(valid_fonts)):
             continue
 
         # 调整图片尺寸以适应文本
-        image_width = text_width + 100
-        image_height = text_height + 100
+        image_width = text_width + 300
+        image_height = text_height + 300
         image = Image.new("RGB", (image_width, image_height), color="white")
         draw = ImageDraw.Draw(image)
 
