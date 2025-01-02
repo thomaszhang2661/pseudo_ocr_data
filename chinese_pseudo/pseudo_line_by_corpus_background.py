@@ -6,18 +6,13 @@
 这个模块制造伪的行数据，基于单个中文字，随机添加删除符号
 """
 
-from PIL import Image, ImageDraw
-import numpy as np
+from PIL import Image, ImageFilter
 import random
 import time
-import multiprocessing
 import os
 from tqdm import tqdm
-import cv2  # OpenCV库，用于更快的图像处理
 from gen_scratch import apply_scratches
 from image_operation import *
-import pickle
-import math
 from mapping_punct import chinesepun2englishpun
 import json
 from itertools import cycle, islice
@@ -164,6 +159,15 @@ def adjust_gamma(image, gamma=1.0):
 #         result = chinese_words[off_set]  # 使用给定的偏移量选取
 #
 #     return process_result(result)  # 处理并返回结果
+
+
+def adjust_text_brightness(image, lower=30):
+    """调整图像的亮度，使字体颜色变淡"""
+    # 转为 numpy 数组
+    image_array = np.array(image)
+    # 调整亮度
+    image_array = np.clip(image_array, lower, 255)
+    return Image.fromarray(image_array)
 
 def crop_off_whitespace(image,direction=2):
     # 转换为NumPy数组
@@ -487,7 +491,8 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     if random.choice(range(3)) != 0:
         underline_y1 = height_goal - random.randint(0, 10)  # 下划线的位置
         underline_y2 = height_goal - random.randint(0, 10)  # 下划线的位置
-        draw.line([(0, underline_y1), (width, underline_y2)], fill=0, width=2)
+
+        draw.line([(0, underline_y1), (width, underline_y2)], fill=0, width=random.randint(2,5))
 
     # 切边
     image = crop_off_whitespace(image)
@@ -513,15 +518,21 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
         ratio = 64 / h_l
         larger_image = larger_image.resize((int(w_l*ratio), int(h_l*ratio)), Image.Resampling.LANCZOS)
 
-
+    random_lower = random.randint(0, 60)
+    larger_image = adjust_text_brightness(larger_image, lower=random_lower)
     background = random.choice(background_images)
+
     #将背景图resize到目标大小
-    if background.size[0] < larger_image.size[0] or background.size[1] < larger_image.size[1]:
-        background = background.resize((larger_image.size[0], larger_image.size[1]),  Image.Resampling.LANCZOS)
+    if background.size[0] < larger_image.size[0] :
+        background = background.resize((larger_image.size[0], background.size[1]),  Image.Resampling.LANCZOS)
+    elif background.size[1] < larger_image.size[1]:
+        background = background.resize((background.size[0], larger_image.size[1]), Image.Resampling.LANCZOS)
     else:
         # 截取需要的部分
         background = background.crop((0, 0, larger_image.size[0], larger_image.size[1]))
     final_image = add_background_to_image(larger_image, background)
+    final_image = final_image.filter(ImageFilter.GaussianBlur(radius=random.uniform(0, 1.5)))  # 这里可以调整radius来控制模糊程度
+
     larger_image = final_image
 
     timestamp = int(time.time())
@@ -529,7 +540,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     output_sub = os.path.join(output_path,str(i_font+num_font_off_set+PREVIOUS_FONT_INDEX))
     os.makedirs(output_sub, exist_ok=True)
     print(output_sub)
-    output_file = os.path.join(output_sub,f'{timestamp}_{i_font+num_font_off_set+PREVIOUS_FONT_INDEX}_{index_line}.jpg')
+    output_file = os.path.join(output_sub, f'{timestamp}_{i_font+num_font_off_set+PREVIOUS_FONT_INDEX}_{index_line}.jpg')
 
     try:
         larger_image.save(output_file)
