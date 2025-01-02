@@ -49,17 +49,17 @@ problem_font=["立体铁山硬笔行楷简",
 path_font = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_250101"
 
 
-for root,dirs,files in tqdm(os.walk(path_font),total=len(os.listdir(path_font))):
-    for file_name in files:
-        if file_name.split("_")[0] in problem_font:
-            os.remove(root+"/"+file_name)
-            #print(f"Deleted {file_name}")
-
-# path_font = "C:/Users/ThomasZhang/Desktop/selected_hw_1"
 # for root,dirs,files in tqdm(os.walk(path_font),total=len(os.listdir(path_font))):
 #     for file_name in files:
-#         if file_name.split(".")[0] in problem_font:
+#         if file_name.split("_")[0] in problem_font:
 #             os.remove(root+"/"+file_name)
-#             print(f"Deleted {file_name}")
+#             #print(f"Deleted {file_name}")
+
+path_font = "C:/Users/ThomasZhang/Desktop/selected_hw_1"
+for root,dirs,files in tqdm(os.walk(path_font),total=len(os.listdir(path_font))):
+    for file_name in files:
+        if file_name.split(".")[0] in problem_font:
+            os.remove(root+"/"+file_name)
+            print(f"Deleted {file_name}")
 
 

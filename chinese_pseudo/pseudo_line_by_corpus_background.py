@@ -42,7 +42,7 @@ print("当前工作路径是:", current_working_directory)
 
 length_max = 15
 
-PREVIOUS_FONT_INDEX = 720
+PREVIOUS_FONT_INDEX = 830
 
 from PIL import Image
 import os
@@ -397,6 +397,15 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
             #single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)), Image.ANTIALIAS)
             single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)),
             Image.Resampling.LANCZOS)
+        # 如果是英文字母或者数字，需要调整大小
+        else:
+            cur_width, cur_height = single_image.size
+            ratio = min(width_goal / cur_width, height_goal / cur_height)
+            ratio = min(ratio,2)
+            ratio = random.uniform(1, ratio)
+            single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)),
+            Image.Resampling.LANCZOS)
+            
         if list_of_text[i] == " ":
             single_image = Image.fromarray(np.ones((height_goal,
                                                     random.randint(int(width_goal * 0.3),int(width_goal)))) * 255)
@@ -539,7 +548,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     text_new = "".join(list_of_text)
     output_sub = os.path.join(output_path,str(i_font+num_font_off_set+PREVIOUS_FONT_INDEX))
     os.makedirs(output_sub, exist_ok=True)
-    print(output_sub)
+    #print(output_sub)
     output_file = os.path.join(output_sub, f'{timestamp}_{i_font+num_font_off_set+PREVIOUS_FONT_INDEX}_{index_line}.jpg')
 
     try:
@@ -560,24 +569,26 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
 
 if __name__ == '__main__':
     random.seed(40)
-    num_font = 5 #字体数量
+    # 总共236 字体
+    num_font = 10 #字体数量
     num_font_off_set = 0
     #image_directory = './single_font/pseudo_chinese_images_1111_checked'
     #image_font_directory = '../../pseudo_chinese_images_1111_checked/'
     #image_font_directory = '../../pseudo_chinese_images_1111_checked/'
     #image_pub_directory = './chinese_data1018/pic_chinese_char'
     #image_pub_directory = '../../gnt_all/'.replace('/', os.sep)
-    #image_pub_directory = '/database/single_font_1222/'.replace('/', os.sep)
-
-    image_pub_directory = r"C:\Users\ThomasZhang\PycharmProjects\pseudo_chinese_images_250101".replace("\\","/")
+    image_pub_directory = '/database/single_font_250101/'.replace('/', os.sep)
+    #image_pub_directory = r"C:\Users\ThomasZhang\PycharmProjects\pseudo_chinese_images_250101".replace("\\","/")
+    
     #output_path = './Chinese-app-digital/data/data_train/'
     #output_path = f'./psudo_chinese_data/gen_line_print_data_1110/'
     #output_path = '../../psudo_chinese_data/gen_line_data_1210_delta/'.replace('/', os.sep)
-    #output_path = '/database/gen_line_data_250101_font_old/'.replace('/', os.sep)
-    output_path = r"C:\Users\ThomasZhang\PycharmProjects\gen_line_data_250101_font_new".replace("\\", "/")
+    output_path = '/database/gen_line_data_250101_font_new/'.replace('/', os.sep)
+    #output_path = r"C:\Users\ThomasZhang\PycharmProjects\gen_line_data_250101_font_new".replace("\\", "/")
 
     # 加载底图
-    background_directory = r"C:\Users\ThomasZhang\PycharmProjects\background".replace("\\", "/")  # 底图文件夹路径
+    #background_directory = r"C:\Users\ThomasZhang\PycharmProjects\background".replace("\\", "/")  # 底图文件夹路径
+    background_directory ="./background/"
     background_images = load_background_images(background_directory)
 
     #label_path = f'{output_path}labels/'.replace('/', os.sep)
