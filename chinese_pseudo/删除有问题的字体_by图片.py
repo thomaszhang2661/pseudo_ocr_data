@@ -65,7 +65,7 @@ def find_and_remove_duplicates(image_dir, predefined_images):
 
 # 使用示例
 predefined_image_dir = "C:/Users/ThomasZhang/Desktop/删除的图片"  # 预定义图片所在文件夹
-image_dir = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_1231"  # 目标图片文件夹
+image_dir = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_250101"  # 目标图片文件夹
 
 # 先加载预定义图片的路径
 predefined_images = load_predefined_images(predefined_image_dir)

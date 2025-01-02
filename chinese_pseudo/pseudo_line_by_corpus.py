@@ -1,5 +1,4 @@
 
-
 """
 作者：张健
 时间：2024.10.20
@@ -20,6 +19,8 @@ import pickle
 import math
 from mapping_punct import chinesepun2englishpun
 import json
+from itertools import cycle, islice
+
 
 
 # 上部标点
@@ -45,6 +46,7 @@ print("当前工作路径是:", current_working_directory)
 
 length_max = 15
 
+PREVIOUS_FONT_INDEX = 720
 
 
 # 读取字典
@@ -55,7 +57,7 @@ with open('./merged_dict.txt', 'r', encoding='utf-8') as f:
         char, code = line.strip().split(' : ')  # 按制表符分割
         char_dict[char] = int(code)  # 将编码转换为整数
     char_dict[" "] = lenth_original + 1
-    print("char_dict space",char_dict[" "])
+    print("char_dict space" ,char_dict[" "])
 dict_list = list(char_dict.keys())
 
 
@@ -79,48 +81,23 @@ zidonghua_list = list(zidonghua_dict.keys())
 
 lenth_original = len(zidonghua_dict)
 # 读取需要补充的字典
-#char_complement_dict = {}
+# char_complement_dict = {}
 # with open('./需要添加的汉字', 'r', encoding='utf-8') as f:
 #     for i_l, line in enumerate(f):
 #         char = line.strip()
 #         zidonghua_dict[char] = int(lenth_original + i_l + 1)
 #         zidonghua_dict_reverse[int(lenth_original + i_l + 1)] = char
 
-#检查translate table
-E_pun = u'••,!?[][]()<><>‘~::---@#$￥%||;=/~aaeeno2福'
-C_pun = u'·•，！？【】［］（）〈〉＜＞\'~：ː—－­＠＃＄￥％｜∣；＝／～ɑàéëñö₂褔'
-print(len(E_pun), len(C_pun))
-for char in E_pun:
-    if char not in zidonghua_dict:
-        print('E_pun', char)
-for char in C_pun:
-    if char not in zidonghua_dict:
-        print('C_pun', char)
-
-# 检查corpus中的字符
-# 读取corpus
-#corpus_list = ['all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt']
-corpus_list = ['all_corpus_standard.txt']
-corpus_path = './corpus/'
-
-for file in corpus_list:
-    print(file)
-
-    path_corpus = os.path.join(corpus_path, file)
-    chinese_words = []
-    with open(path_corpus, 'r', encoding='utf-8') as f:
-        for line in tqdm(f, desc="加载corpus",total=len(f.)):
-            translation = chinesepun2englishpun(line.strip())
-            chinese_words.append(translation)
-            # 检查是否有不在字典中的字符
-            for char in translation:
-                if char not in zidonghua_dict:
-                    #print('waring', char, translation)
-                    with open('需要添加的汉字', 'r', encoding="utf-8") as f:
-                        if char not in f.read():
-                            with open('需要添加的汉字', 'a', encoding="utf-8") as f:
-                                f.write(char+'\n')
-
+# 检查translate table
+# E_pun = u'••,!?[][]()<><>‘~::---@#$￥%||;=/~aaeeno2福'
+# C_pun = u'·•，！？【】［］（）〈〉＜＞\'~：ː—－­＠＃＄￥％｜∣；＝／～ɑàéëñö₂褔'
+# print(len(E_pun), len(C_pun))
+# for char in E_pun:
+#     if char not in zidonghua_dict:
+#         print('E_pun', char)
+# for char in C_pun:
+#     if char not in zidonghua_dict:
+#         print('C_pun', char)
 
 
 print("corpus exam finished")
@@ -145,37 +122,37 @@ def adjust_gamma(image, gamma=1.0):
 
 
 
-def generate_line_by_chinese_word(off_set, random_seq=False,length=1,):
-    # 用来处理单一逻辑的辅助函数
-    def process_result(result):
-        # 如果字符数大于20，随机截取连续的20个字符
-        if len(result) > length_max:
-            # 切割成词语（假设通过空格分隔）
-            line_list = result.split()
-            ratio = len("".join(line_list)) / len(line_list) # 计算比例
-            # 根据比例计算截取长度
-            result1 = random.sample(line_list, k=min(math.floor(length_max / ratio), len(line_list)))
-            result = ' '.join(result1)  # 连接成字符串
-        else:
-            # 如果字符数小于20，随机打乱字符
-            line_list = result.split()
-            random.shuffle(line_list)  # 打乱顺序
-            result = ' '.join(line_list)  # 连接成字符串
-        return result
+# def generate_line_by_chinese_word(off_set, random_seq=False,length=1,):
+#     # 用来处理单一逻辑的辅助函数
+#     def process_result(result):
+#         # 如果字符数大于20，随机截取连续的20个字符
+#         if len(result) > length_max:
+#             # 切割成词语（假设通过空格分隔）
+#             line_list = result.split()
+#             ratio = len("".join(line_list)) / len(line_list) # 计算比例
+#             # 根据比例计算截取长度
+#             result1 = random.sample(line_list, k=min(math.floor(length_max / ratio), len(line_list)))
+#             result = ' '.join(result1)  # 连接成字符串
+#         else:
+#             # 如果字符数小于20，随机打乱字符
+#             line_list = result.split()
+#             random.shuffle(line_list)  # 打乱顺序
+#             result = ' '.join(line_list)  # 连接成字符串
+#         return result
 
-    # 根据random_seq的值选择不同的生成逻辑
-    if random_seq:
-        result = random.choice(chinese_words)  # 随机选择一个
-    else:
-        result = chinese_words[off_set]  # 使用给定的偏移量选取
+#     # 根据random_seq的值选择不同的生成逻辑
+#     if random_seq:
+#         result = random.choice(chinese_words)  # 随机选择一个
+#     else:
+#         result = chinese_words[off_set]  # 使用给定的偏移量选取
 
-    return process_result(result)  # 处理并返回结果
+#     return process_result(result)  # 处理并返回结果
 
-def crop_off_whitespace(image,direction=2):
+def crop_off_whitespace(image ,direction=2):
     # 转换为NumPy数组
     # 将图像转换为灰度
     gray_image = image.convert('L')
-    w,h = gray_image.size
+    w ,h = gray_image.size
     image_array = np.array(gray_image)
     threshold = 230
     # 计算每一行和每一列的灰度值之和
@@ -213,10 +190,10 @@ def load_local_images(image_directory):
     """这个函数根据单子数据添加到一个字典结构中"""
     mnist_data = {}
     font_style = []
-    #files = sorted(os.listdir(image_directory))
+    # files = sorted(os.listdir(image_directory))
     files = os.listdir(image_directory)
     filenames = [f for f in files if f.endswith('.jpg')]
-    for filename in tqdm(filenames[:10000], desc="加载图像"):
+    for filename in tqdm(filenames, desc="加载图像"):
         font_name, label = filename.split('_', 1)
         label = label.split('.')[0]
         if font_name not in font_style:
@@ -232,13 +209,13 @@ def load_local_images(image_directory):
 
         # 将图像数据存入相应的标签和字体名下
         mnist_data[label][font_name] = np.array(image)
-        #font_style = list(set(font_style))
+        # font_style = list(set(font_style))
     return font_style, mnist_data
 
 
 
 
-def load_local_images_pub(image_directory):
+def load_local_images_pub(image_directory ,num_font ,num_font_off_set):
     '''加载自动化所的单个手写字体'''
     zidonghua_data = {}
 
@@ -259,12 +236,15 @@ def load_local_images_pub(image_directory):
 
         folder_path = os.path.join(image_directory, sub_files)
 
-        # 获取该文件夹中所有文件名，并仅取前5个文件
+        # 获取该文件夹中所有文件名
         files = os.listdir(folder_path)
-        sorted_files = sorted(files, key=lambda x: int(x.split('.')[0]))
+        # files = [entry.name for entry in os.scandir(folder_path) if entry.is_file()]
+        sorted_files = sorted(files, key=lambda x: x.split('.')[0])
+        if len(sorted_files) < num_font_off_set + num_font:
+            sorted_files = list(islice(cycle(sorted_files), num_font_off_set + num_font))
 
-        files = sorted_files[:5]
-
+        files = sorted_files[num_font_off_set:num_font_off_se t +num_font]
+        # print(len(files),'len_sorted_files')
         # 初始化当前字符的图像数据列表
         zidonghua_data[word] = []
 
@@ -290,20 +270,29 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     height_goal = 70
     off_set_max = 10
     # 整幅图片
-    image = Image.new('L', ((width_goal + off_set_max)*len(line_chars), int(height_goal * 1.5)), 255)
+    image = Image.new('L', ((width_goal + off_set_max ) *len(line_chars), int(height_goal * 1.5)), 255)
     gamma_value = 0.4  # 可以调整此值，0.5效果通常较为明显
     # 随机选择一次所有字符的图像
     selected_images = []
     for i_c, char in enumerate(line_chars):
-        if char not in zidonghua_data:
-            list_of_text[i_c] = " "
-            #print("warning not in dict", char, line_chars)
-            continue
+        # if char not in zidonghua_data:
+        #     list_of_text[i_c] = " "
+        #     # 添加空白图片
+        #     selected_images.append(zidonghua_data[" "][0])
+        #     #print("warning not in dict", char, line_chars)
+        #     continue
         if char in zidonghua_data:
             char_images = zidonghua_data[char]
-            #random_indices = random.randint(0, len(char_images) - 1)
-            index_font = index_font % len(char_images)
-            selected_image = char_images[index_font]
+            # random_indices = random.randint(0, len(char_images) - 1)
+            # index_font = index_font % len(char_images)
+            try:
+                if char == " ":
+                    selected_image = char_images[0]
+                else:
+                    selected_image = char_images[index_font]
+            except IndexError as e:
+                print(f"Error: {e}. Length of char_images: {len(char_images)}, index_font: {index_font}")
+
             # 调整伽马值，尝试低于1.0的值来增加黑色区域的深度
             selected_image = adjust_gamma(selected_image, gamma=gamma_value)
             selected_images.append(selected_image)
@@ -315,12 +304,15 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
         #     selected_images.append(selected_image)
 
         else:
-            #raise
-            #selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
-            selected_images.append(np.ones((height_goal, int(width_goal/2))) * 255)  # 如果找不到，填充白色图
-            if char != " ":
-                print("未找到字符", char)
-            list_of_text[i_c] = ""
+            # raise
+            # selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
+            # selected_images.append(np.ones((height_goal, int(width_goal/2))) * 255)  # 如果找不到，填充白色图
+
+            # ========================
+            # if char != " ":
+            #     print("未找到字符", char)
+            list_of_text[i_c] = " "
+            selected_images.append(zidonghua_data[" "][0])
     # 粘贴图像
     # 粘贴图像
     off_set_position = 0
@@ -337,9 +329,9 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
         ratio = min(width_goal / cur_width, height_goal / cur_height)
 
         if list_of_text[i] not in punct_dict:
-
-            #single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.ANTIALIAS)
-            single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.Resampling.LANCZOS)
+            if random.choice(range(2)) == 0:
+                # single_image = single_image.resize((int(cur_width*ratio), int(cur_height*ratio)), Image.ANTIALIAS)
+                single_image = single_image.resize((int(cur_widt h *ratio), int(cur_heigh t *ratio)), Image.Resampling.LANCZOS)
         # elif list_of_text[i] in upper_punct:
         #     single_image = single_image.resize((int(cur_width*ratio * 0.4), int(cur_height*ratio * 0.4)), Image.Resampling.LANCZOS)
         # elif list_of_text[i] in lower_punct:
@@ -357,16 +349,16 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
         # elif list_of_text[i] in letter_A:
         #     single_image = single_image.resize((int(cur_width*ratio ), int(cur_height*ratio)), Image.Resampling.LANCZOS)
         elif ratio < 1:
-            single_image = single_image.resize((int(cur_width*ratio * 0.9), int(cur_height*ratio * 0.9)), Image.Resampling.LANCZOS)
+            single_image = single_image.resize((int(cur_widt h *ratio * 0.9), int(cur_heigh t *ratio * 0.9)), Image.Resampling.LANCZOS)
 
 
 
         # 透视变换
-        if random_flag :#and random.choice(range(2)) == 0:
+        if random_flag  :# and random.choice(range(2)) == 0:
             single_image = apply_perspective_transform(single_image)
         # 应用旋转变换
         #  # 旋转角度，可以调整
-        if random_flag :#and random.choice(range(2)) == 0:
+        if random_flag:  # and random.choice(range(2)) == 0:
             angle_ratio = random.uniform(-1.0, 1.0)
             angle = 10 * angle_ratio
             single_image = rotate_text_image(single_image, angle)
@@ -375,30 +367,29 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
         # 归一化大小
         if list_of_text[i] not in punct_dict:
             cur_width, cur_height = single_image.size
-            #if cur_height > height_goal or cur_width > width_goal:
+            # if cur_height > height_goal or cur_width > width_goal:
             # single_image = cv2.resize(single_image, (width_goal, height_goal), interpolation=cv2.INTER_LINEAR)
             ratio = min(width_goal / cur_width, height_goal / cur_height)
-            #single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)), Image.ANTIALIAS)
+            # single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)), Image.ANTIALIAS)
             single_image = single_image.resize((int(cur_width * ratio), int(cur_height * ratio)),
-            Image.Resampling.LANCZOS)
+                                               Image.Resampling.LANCZOS)
         if list_of_text[i] == " ":
             single_image = Image.fromarray(np.ones((height_goal,
-                                                    random.randint(int(width_goal * 0.3),int(width_goal)))) * 255)
-
+                                                    random.randint(int(width_goal * 0.3), int(width_goal)))) * 255)
 
         # 调整大小
         single_width, single_height = single_image.size
         scale_ratio = random.uniform(0.9, 1.0)
         scaled_w = int(single_width * scale_ratio)
         scaled_h = int(single_height * scale_ratio)
-        #single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
+        # single_image = single_image.resize((scaled_w, scaled_h), Image.ANTIALIAS)
         single_image = single_image.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
 
         # 加入划痕
-        # if random.choice(range(20)) == 0:
-        #     single_image = crop_off_whitespace(single_image)
-        #     single_image = apply_scratches(single_image)
-        #     list_of_text[i] = 'x'
+        if list_of_text[i] not in punct_dict and list_of_text[i] != " " and random.choice(range(100)) == 0:
+            single_image = crop_off_whitespace(single_image)
+            single_image = apply_scratches(single_image)
+            list_of_text[i] = '\\'
 
         # 切边
         single_image = crop_off_whitespace(single_image)
@@ -409,7 +400,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
         ##else:
         #    offset_x = single_width - cell_width
 
-        #offset_y = random.randint(0, height_goal - single_height)
+        # offset_y = random.randint(0, height_goal - single_height)
         # 适当调整位置
         if list_of_text[i] not in punct_dict:
             offset_y = random.randint(max(int(0.5 * height_goal - single_height), 0),
@@ -445,7 +436,9 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
                                       height_goal - single_height)
 
         elif list_of_text[i] in letter_descender:
-            offset_y = random.randint(int(height_goal - single_height * 0.5 - 0.05 * single_height),
+            # offset_y = random.randint(int(height_goal - single_height * 0.5 - 0.05 * single_height),
+            #                           int(height_goal - single_height * 0.5))
+            offset_y = random.randint(height_goal - single_height - int(0.1 * single_height),
                                       int(height_goal - single_height * 0.5))
 
         elif list_of_text[i] in punct_dict:
@@ -457,9 +450,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
             offset_y = random.randint(int(height_goal * 0.5 - single_height * 0.5 - 0.1 * single_height),
                                       int(height_goal * 0.5 - single_height * 0.5 + 0.1 * single_height))
 
-
         # 这个地方需要对标点符号特殊处理。
-
 
         # paste_position = (i * cell_width + offset_x, offset_y)
         paste_position = (off_set_position + offset_x, offset_y)
@@ -478,11 +469,9 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     image = crop_off_whitespace(image)
     width, height = image.size
 
-
-
     # 添加边距
-    min_margin = int(0.1 * height)
-    max_margin = int(0.15 * height)
+    min_margin = int(0.04 * height)
+    max_margin = int(0.08 * height)
     left_margin = random.randint(min_margin, max_margin)
     right_margin = random.randint(min_margin, max_margin)
     top_margin = random.randint(min_margin, max_margin)
@@ -491,51 +480,68 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     larger_height = height + top_margin + bottom_margin
     larger_image = Image.new('L', (larger_width, larger_height), 255)
     larger_image.paste(image, (left_margin, top_margin))
-
     # 保存图像
+
+    w_l, h_l = larger_image.size
+    if h_l > 64:
+        ratio = 64 / h_l
+        larger_image = larger_image.resize((int(w_l * ratio), int(h_l * ratio)), Image.Resampling.LANCZOS)
 
     timestamp = int(time.time())
     text_new = "".join(list_of_text)
-    output_file = f'{output_path}{timestamp}_{i_font}_{index_line}.jpg'
+    output_sub = os.path.join(output_path, str(i_font + num_font_off_set + PREVIOUS_FONT_INDEX))
+    os.makedirs(output_sub, exist_ok=True)
+    # print(output_sub)
+    output_file = os.path.join(output_sub,
+                               f'{timestamp}_{i_font + num_font_off_set + PREVIOUS_FONT_INDEX}_{index_line}.jpg')
+
     try:
         larger_image.save(output_file)
-        label_content[f'{timestamp}_{i_font}_{index_line}'] = text_new
-        #temp_dict = {}
-        #temp_dict[f'{timestamp}_{i_font}_{index_line}'] = text_new
-        with open(f'{timestamp}_{i_font}_{index_line}.txt', 'w', encoding='utf-8') as f:
-            f.write(text_new)
-    except:
-        print("Error saving image", output_file)
+        label_content[f'{timestamp}_{i_font + num_font_off_set + PREVIOUS_FONT_INDEX}_{index_line}'] = text_new
 
+    except Exception as e:
+        print(f"Error saving image {output_file}: {e}")
+
+    # label_path = os.path.join(output_sub, 'labels')
+    # os.makedirs(label_path, exist_ok=True)
+    # label_file_name = os.path.join(label_path, f"{timestamp}_{i_font+num_font_off_set}_{index_line}.txt")
+
+    # with open(label_file_name,'w',encoding='utf-8') as f:
+    #     f.write(text_new)
 
 
 if __name__ == '__main__':
     random.seed(40)
-    num_font = 5 #字体数量
-    #image_directory = './single_font/pseudo_chinese_images_1111_checked'
-    #image_font_directory = '../../pseudo_chinese_images_1111_checked/'
-    #image_font_directory = '../../pseudo_chinese_images_1111_checked/'
-    #image_pub_directory = './chinese_data1018/pic_chinese_char'
-    image_pub_directory = '../../pic_chinese_char/gnt_all/'.replace('/', os.sep)
+    num_font = 5  # 字体数量
+    num_font_off_set = 0
+    # image_directory = './single_font/pseudo_chinese_images_1111_checked'
+    # image_font_directory = '../../pseudo_chinese_images_1111_checked/'
+    # image_font_directory = '../../pseudo_chinese_images_1111_checked/'
+    # image_pub_directory = './chinese_data1018/pic_chinese_char'
+    # image_pub_directory = '../../gnt_all/'.replace('/', os.sep)
+    image_pub_directory = '/database/single_font_1222/'.replace('/', os.sep)
 
-    #output_path = './Chinese-app-digital/data/data_train/'
-    #output_path = f'./psudo_chinese_data/gen_line_print_data_1110/'
-    output_path = '../../psudo_chinese_data/gen_line_print_data_1209_hw/'.replace('/', os.sep)
-    label_file = '../../psudo_chinese_data/gen_line_print_data_1209_hw/label.json'.replace('/', os.sep)
+    # output_path = './Chinese-app-digital/data/data_train/'
+    # output_path = f'./psudo_chinese_data/gen_line_print_data_1110/'
+    # output_path = '../../psudo_chinese_data/gen_line_data_1210_delta/'.replace('/', os.sep)
+    output_path = '/database/gen_line_data_250101_font_old/'.replace('/', os.sep)
+
+    # label_path = f'{output_path}labels/'.replace('/', os.sep)
     if not os.path.exists(output_path):
-        os.makedirs(output_path)
+        os.makedirs(output_path, exist_ok=True)
+    # if not os.path.exists(label_path):
+    #    os.makedirs(label_path),,exist_ok=True
     random_font = True
     random_seq = True
-    os.makedirs(output_path, exist_ok=True)
 
     # 加载单个汉字图片
-    zidonghua_data = load_local_images_pub(image_pub_directory)
+    zidonghua_data = load_local_images_pub(image_pub_directory, num_font, num_font_off_set)
 
-    #读取corpus #'all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt','xdhy_corpus_book.txt'
+    # 读取corpus #'all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt','xdhy_corpus_book.txt'
     corpus_list = ['all_corpus_standard.txt']
     corpus_path = './corpus/'
     corpus_content = []
-    label_content = {}
+
     for file in corpus_list:
         print(file)
         path_corpus = os.path.join(corpus_path, file)
@@ -546,13 +552,23 @@ if __name__ == '__main__':
     print("corpus exam finished")
 
     # 遍历字体，每种字体生成一套数据，后面不够的轮回前面的字体 num_font
-    for i_font in range(1):
-        for index_line, line in tqdm(enumerate(corpus_content), total=len(corpus_content)):
-            create_handwritten_number_image_pub_by_corpus(i_font, index_line, line, output_path, zidonghua_data)
+    for i_font in tqdm(range(num_font), total=num_font):
+        # if i_font  < 67:
+        #     print(i_font,"continue")
+        #     continue
 
+        label_content = {}
+        for index_line, line in enumerate(corpus_content):
+            create_handwritten_number_image_pub_by_corpus(i_font, index_line, line, output_path, zidonghua_data)
+        # 输出labels
+        output_sub = os.path.join(output_path, str(i_font + num_font_off_set + PREVIOUS_FONT_INDEX))
+        print(output_sub)
+        os.makedirs(output_sub, exist_ok=True)
+        label_file = os.path.join(output_sub, 'label.json')
+        with open(label_file, 'w', encoding='utf-8') as f:
+            json.dump(label_content, f, ensure_ascii=False, indent=4)
     # 保存标签
-    with open(label_file, 'w', encoding='utf-8') as f:
-        json.dump(label_content, f, ensure_ascii=False, indent=4)
+
 
 
 

@@ -106,7 +106,7 @@ user_font_dir =  "C:/Users/ThomasZhang/Desktop/selected_hw_1"
 
 # 定义用于保存生成图片的输出目录
 #output_dir = "../../pseudo_chinese_images_1213"
-output_dir = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_1231/"  #"/Volumes/Samsung SSD/字体/1213_font/"
+output_dir = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_250101/"  #"/Volumes/Samsung SSD/字体/1213_font/"
 
 os.makedirs(output_dir, exist_ok=True)
 # 获取系统中已安装的字体列表
