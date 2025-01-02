@@ -123,31 +123,31 @@ def adjust_gamma(image, gamma=1.0):
 
 
 
-# def generate_line_by_chinese_word(off_set, random_seq=False,length=1,):
-#     # 用来处理单一逻辑的辅助函数
-#     def process_result(result):
-#         # 如果字符数大于20，随机截取连续的20个字符
-#         if len(result) > length_max:
-#             # 切割成词语（假设通过空格分隔）
-#             line_list = result.split()
-#             ratio = len("".join(line_list)) / len(line_list) # 计算比例
-#             # 根据比例计算截取长度
-#             result1 = random.sample(line_list, k=min(math.floor(length_max / ratio), len(line_list)))
-#             result = ' '.join(result1)  # 连接成字符串
-#         else:
-#             # 如果字符数小于20，随机打乱字符
-#             line_list = result.split()
-#             random.shuffle(line_list)  # 打乱顺序
-#             result = ' '.join(line_list)  # 连接成字符串
-#         return result
-#
-#     # 根据random_seq的值选择不同的生成逻辑
-#     if random_seq:
-#         result = random.choice(chinese_words)  # 随机选择一个
-#     else:
-#         result = chinese_words[off_set]  # 使用给定的偏移量选取
-#
-#     return process_result(result)  # 处理并返回结果
+def generate_line_by_chinese_word(off_set, random_seq=False,length=1,):
+    # 用来处理单一逻辑的辅助函数
+    def process_result(result):
+        # 如果字符数大于20，随机截取连续的20个字符
+        if len(result) > length_max:
+            # 切割成词语（假设通过空格分隔）
+            line_list = result.split()
+            ratio = len("".join(line_list)) / len(line_list) # 计算比例
+            # 根据比例计算截取长度
+            result1 = random.sample(line_list, k=min(math.floor(length_max / ratio), len(line_list)))
+            result = ' '.join(result1)  # 连接成字符串
+        else:
+            # 如果字符数小于20，随机打乱字符
+            line_list = result.split()
+            random.shuffle(line_list)  # 打乱顺序
+            result = ' '.join(line_list)  # 连接成字符串
+        return result
+
+    # 根据random_seq的值选择不同的生成逻辑
+    if random_seq:
+        result = random.choice(chinese_words)  # 随机选择一个
+    else:
+        result = chinese_words[off_set]  # 使用给定的偏移量选取
+
+    return process_result(result)  # 处理并返回结果
 
 def crop_off_whitespace(image,direction=2):
     # 转换为NumPy数组
@@ -243,7 +243,7 @@ def load_local_images_pub(image_directory,num_font,num_font_off_set):
         sorted_files = sorted(files, key=lambda x: x.split('.')[0])
         if len(sorted_files) < num_font_off_set + num_font:
             sorted_files = list(islice(cycle(sorted_files), num_font_off_set + num_font))
-
+                
         files = sorted_files[num_font_off_set:num_font_off_set+num_font]
         #print(len(files),'len_sorted_files')
         # 初始化当前字符的图像数据列表
@@ -308,7 +308,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
             #raise
             #selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
             #selected_images.append(np.ones((height_goal, int(width_goal/2))) * 255)  # 如果找不到，填充白色图
-
+            
             #========================
             # if char != " ":
             #     print("未找到字符", char)
@@ -487,7 +487,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     larger_image = Image.new('L', (larger_width, larger_height), 255)
     larger_image.paste(image, (left_margin, top_margin))
     # 保存图像
-
+    
     w_l, h_l = larger_image.size
     if h_l > 64:
         ratio = 64 / h_l
@@ -506,7 +506,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
 
     except Exception as e:
         print(f"Error saving image {output_file}: {e}")
-
+    
     # label_path = os.path.join(output_sub, 'labels')
     # os.makedirs(label_path, exist_ok=True)
     # label_file_name = os.path.join(label_path, f"{timestamp}_{i_font+num_font_off_set}_{index_line}.txt")
@@ -542,12 +542,12 @@ if __name__ == '__main__':
 
     # 加载单个汉字图片
     zidonghua_data = load_local_images_pub(image_pub_directory,num_font,num_font_off_set)
-
+    
     #读取corpus #'all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt','xdhy_corpus_book.txt'
     corpus_list = ['all_corpus_standard.txt']
     corpus_path = './corpus/'
     corpus_content = []
-
+    
     for file in corpus_list:
         print(file)
         path_corpus = os.path.join(corpus_path, file)
@@ -562,7 +562,7 @@ if __name__ == '__main__':
         # if i_font  < 67:
         #     print(i_font,"continue")
         #     continue
-
+            
         label_content = {}
         for index_line, line in enumerate(corpus_content):
             create_handwritten_number_image_pub_by_corpus(i_font, index_line, line, output_path, zidonghua_data)
