@@ -49,18 +49,52 @@ length_max = 15
 
 PREVIOUS_FONT_INDEX = 720
 
+from PIL import Image
+import os
 
-# 读取字典
-char_dict = {}
-with open('./merged_dict.txt', 'r', encoding='utf-8') as f:
-    lenth_original = len(f.readlines())
-    for line in f:
-        char, code = line.strip().split(' : ')  # 按制表符分割
-        char_dict[char] = int(code)  # 将编码转换为整数
-    char_dict[" "] = lenth_original + 1
-    print("char_dict space",char_dict[" "])
-dict_list = list(char_dict.keys())
+def load_background_images(background_directory):
+    """加载所有底图图像并转换为灰度图像"""
+    background_images = []
+    files = os.listdir(background_directory)
+    for filename in files:
+        if filename.endswith('.jpg') or filename.endswith('.png'):
+            filepath = os.path.join(background_directory, filename)
+            try:
+                # 打开图像并转换为灰度图像
+                gray_image = Image.open(filepath).convert('L')
+                background_images.append(gray_image)
+            except Exception as e:
+                print(f"Error loading background image {filepath}: {e}")
+    return background_images
 
+
+def add_background_to_image(gray_image, background_image, threshold=100):
+    # 将灰度图像转换为 numpy 数组
+    image_array = np.array(gray_image)
+
+    # 计算每一行和每一列的灰度值之和
+    horizontal_sum = np.sum(image_array < threshold, axis=1)
+    vertical_sum = np.sum(image_array < threshold, axis=0)
+
+    # 创建一个和原图相同大小的空白图像，先填充背景
+    background_array = np.array(background_image)
+
+    # 确保背景图像和灰度图像的大小一致
+    if background_array.shape != image_array.shape:
+        # 如果背景图像大小与目标图像不同，需要调整背景图像的大小
+        background_image = background_image.resize(gray_image.size)
+        background_array = np.array(background_image)
+
+    # 生成最终的图像：先将背景图像复制
+    final_image_array = np.copy(background_array)
+
+    # 将前景区域覆盖到背景图像上（即根据灰度值小于阈值的部分，把前景覆盖过去）
+    final_image_array[image_array < threshold] = image_array[image_array < threshold]
+
+    # 将 final_image_array 转换为 PIL 图像
+    final_image = Image.fromarray(final_image_array)
+
+    return final_image
 
 punct_dict = {}
 with open('./标点符号.txt', 'r', encoding='utf-8') as f:
@@ -81,27 +115,9 @@ zidonghua_list = list(zidonghua_dict.keys())
 
 
 lenth_original = len(zidonghua_dict)
-# 读取需要补充的字典
-#char_complement_dict = {}
-# with open('./需要添加的汉字', 'r', encoding='utf-8') as f:
-#     for i_l, line in enumerate(f):
-#         char = line.strip()
-#         zidonghua_dict[char] = int(lenth_original + i_l + 1)
-#         zidonghua_dict_reverse[int(lenth_original + i_l + 1)] = char
-
-#检查translate table
-# E_pun = u'••,!?[][]()<><>‘~::---@#$￥%||;=/~aaeeno2福'
-# C_pun = u'·•，！？【】［］（）〈〉＜＞\'~：ː—－­＠＃＄￥％｜∣；＝／～ɑàéëñö₂褔'
-# print(len(E_pun), len(C_pun))
-# for char in E_pun:
-#     if char not in zidonghua_dict:
-#         print('E_pun', char)
-# for char in C_pun:
-#     if char not in zidonghua_dict:
-#         print('C_pun', char)
 
 
-print("corpus exam finished")
+# print("corpus exam finished")
 
 # 定义伽马校正函数
 def adjust_gamma(image, gamma=1.0):
@@ -155,7 +171,7 @@ def crop_off_whitespace(image,direction=2):
     gray_image = image.convert('L')
     w,h = gray_image.size
     image_array = np.array(gray_image)
-    threshold = 230
+    threshold = 100
     # 计算每一行和每一列的灰度值之和
     horizontal_sum = np.sum(image_array < threshold, axis=1)
     vertical_sum = np.sum(image_array < threshold, axis=0)
@@ -243,7 +259,7 @@ def load_local_images_pub(image_directory,num_font,num_font_off_set):
         sorted_files = sorted(files, key=lambda x: x.split('.')[0])
         if len(sorted_files) < num_font_off_set + num_font:
             sorted_files = list(islice(cycle(sorted_files), num_font_off_set + num_font))
-
+                
         files = sorted_files[num_font_off_set:num_font_off_set+num_font]
         #print(len(files),'len_sorted_files')
         # 初始化当前字符的图像数据列表
@@ -262,7 +278,8 @@ def load_local_images_pub(image_directory,num_font,num_font_off_set):
     return zidonghua_data
 
 
-def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_chars, output_path, zidonghua_data, mnist_data=[]):
+def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_chars, output_path, zidonghua_data,
+                                                  background_images=[],mnist_data=[]):
     '''根据自动化所的手写图像生成伪数据'''
 
     list_of_text = list(line_chars)
@@ -270,9 +287,11 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     width_goal = 70
     height_goal = 70
     off_set_max = 10
+
     # 整幅图片
     image = Image.new('L', ((width_goal + off_set_max)*len(line_chars), int(height_goal * 1.5)), 255)
-    gamma_value = 0.4  # 可以调整此值，0.5效果通常较为明显
+
+    #gamma_value = 0.4  # 可以调整此值，0.5效果通常较为明显
     # 随机选择一次所有字符的图像
     selected_images = []
     for i_c, char in enumerate(line_chars):
@@ -295,7 +314,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
                 print(f"Error: {e}. Length of char_images: {len(char_images)}, index_font: {index_font}")
 
             # 调整伽马值，尝试低于1.0的值来增加黑色区域的深度
-            selected_image = adjust_gamma(selected_image, gamma=gamma_value)
+            #selected_image = adjust_gamma(selected_image, gamma=gamma_value)
             selected_images.append(selected_image)
         # elif char in mnist_data:
         #     char_images = mnist_data[char]
@@ -308,7 +327,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
             #raise
             #selected_images.append(np.zeros((height, width)))  # 如果找不到，填充空白图像
             #selected_images.append(np.ones((height_goal, int(width_goal/2))) * 255)  # 如果找不到，填充白色图
-
+            
             #========================
             # if char != " ":
             #     print("未找到字符", char)
@@ -466,8 +485,9 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     width, height = image.size
     draw = ImageDraw.Draw(image)
     if random.choice(range(3)) != 0:
-        underline_y = height_goal - random.randint(0, 5)  # 下划线的位置
-        draw.line([(0, underline_y), (width, underline_y)], fill=0, width=2)
+        underline_y1 = height_goal - random.randint(0, 10)  # 下划线的位置
+        underline_y2 = height_goal - random.randint(0, 10)  # 下划线的位置
+        draw.line([(0, underline_y1), (width, underline_y2)], fill=0, width=2)
 
     # 切边
     image = crop_off_whitespace(image)
@@ -487,11 +507,22 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     larger_image = Image.new('L', (larger_width, larger_height), 255)
     larger_image.paste(image, (left_margin, top_margin))
     # 保存图像
-
+    
     w_l, h_l = larger_image.size
     if h_l > 64:
         ratio = 64 / h_l
         larger_image = larger_image.resize((int(w_l*ratio), int(h_l*ratio)), Image.Resampling.LANCZOS)
+
+
+    background = random.choice(background_images)
+    #将背景图resize到目标大小
+    if background.size[0] < larger_image.size[0] or background.size[1] < larger_image.size[1]:
+        background = background.resize((larger_image.size[0], larger_image.size[1]),  Image.Resampling.LANCZOS)
+    else:
+        # 截取需要的部分
+        background = background.crop((0, 0, larger_image.size[0], larger_image.size[1]))
+    final_image = add_background_to_image(larger_image, background)
+    larger_image = final_image
 
     timestamp = int(time.time())
     text_new = "".join(list_of_text)
@@ -506,7 +537,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
 
     except Exception as e:
         print(f"Error saving image {output_file}: {e}")
-
+    
     # label_path = os.path.join(output_sub, 'labels')
     # os.makedirs(label_path, exist_ok=True)
     # label_file_name = os.path.join(label_path, f"{timestamp}_{i_font+num_font_off_set}_{index_line}.txt")
@@ -525,12 +556,18 @@ if __name__ == '__main__':
     #image_font_directory = '../../pseudo_chinese_images_1111_checked/'
     #image_pub_directory = './chinese_data1018/pic_chinese_char'
     #image_pub_directory = '../../gnt_all/'.replace('/', os.sep)
-    image_pub_directory = '/database/single_font_1222/'.replace('/', os.sep)
+    #image_pub_directory = '/database/single_font_1222/'.replace('/', os.sep)
 
+    image_pub_directory = r"C:\Users\ThomasZhang\PycharmProjects\pseudo_chinese_images_250101".replace("\\","/")
     #output_path = './Chinese-app-digital/data/data_train/'
     #output_path = f'./psudo_chinese_data/gen_line_print_data_1110/'
     #output_path = '../../psudo_chinese_data/gen_line_data_1210_delta/'.replace('/', os.sep)
-    output_path = '/database/gen_line_data_250101_font_old/'.replace('/', os.sep)
+    #output_path = '/database/gen_line_data_250101_font_old/'.replace('/', os.sep)
+    output_path = r"C:\Users\ThomasZhang\PycharmProjects\gen_line_data_250101_font_new".replace("\\", "/")
+
+    # 加载底图
+    background_directory = r"C:\Users\ThomasZhang\PycharmProjects\background".replace("\\", "/")  # 底图文件夹路径
+    background_images = load_background_images(background_directory)
 
     #label_path = f'{output_path}labels/'.replace('/', os.sep)
     if not os.path.exists(output_path):
@@ -542,12 +579,12 @@ if __name__ == '__main__':
 
     # 加载单个汉字图片
     zidonghua_data = load_local_images_pub(image_pub_directory,num_font,num_font_off_set)
-
+    
     #读取corpus #'all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt','xdhy_corpus_book.txt'
     corpus_list = ['all_corpus_standard.txt']
     corpus_path = './corpus/'
     corpus_content = []
-
+    
     for file in corpus_list:
         print(file)
         path_corpus = os.path.join(corpus_path, file)
@@ -558,14 +595,11 @@ if __name__ == '__main__':
     print("corpus exam finished")
 
     # 遍历字体，每种字体生成一套数据，后面不够的轮回前面的字体 num_font
-    for i_font in tqdm(range(num_font),total=num_font):
-        # if i_font  < 67:
-        #     print(i_font,"continue")
-        #     continue
-
+    for i_font in tqdm(range(num_font), total=num_font):
         label_content = {}
         for index_line, line in enumerate(corpus_content):
-            create_handwritten_number_image_pub_by_corpus(i_font, index_line, line, output_path, zidonghua_data)
+            create_handwritten_number_image_pub_by_corpus(i_font, index_line, line,
+                                                          output_path, zidonghua_data, background_images)
         # 输出labels
         output_sub = os.path.join(output_path,str(i_font+num_font_off_set+PREVIOUS_FONT_INDEX))
         os.makedirs(output_sub, exist_ok=True)
