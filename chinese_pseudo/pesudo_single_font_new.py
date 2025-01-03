@@ -73,8 +73,8 @@ def crop_off_whitespace(image):
     left, right = cols[0], cols[-1]
 
     # 计算适当的边距，避免裁剪掉内容
-    h_margin = max(0, int((bottom - top) * 0.05))  # 边距可以调整为5%
-    w_margin = max(0, int((right - left) * 0.05))  # 边距可以调整为5%
+    h_margin = max(2, int((bottom - top) * 0.05))  # 边距可以调整为5%
+    w_margin = max(2, int((right - left) * 0.05))  # 边距可以调整为5%
 
     top = max(0, top - h_margin)
     bottom = min(image_array.shape[0], bottom + h_margin)
@@ -106,7 +106,7 @@ user_font_dir =  "C:/Users/ThomasZhang/Desktop/selected_hw_1"
 
 # 定义用于保存生成图片的输出目录
 #output_dir = "../../pseudo_chinese_images_1213"
-output_dir = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_250101/"  #"/Volumes/Samsung SSD/字体/1213_font/"
+output_dir = "C:/Users/ThomasZhang/PycharmProjects/single_font_250102/"  #"/Volumes/Samsung SSD/字体/1213_font/"
 
 os.makedirs(output_dir, exist_ok=True)
 # 获取系统中已安装的字体列表
