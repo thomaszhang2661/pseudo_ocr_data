@@ -6,9 +6,10 @@ import re
 
 # 特殊字符
 
-symbols = r'[çøłŋʃʒɪʌəθðɒβϕκπΩδ⅓℅⌘▲▼ⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫ]'
 
 def chinesepun2englishpun(string):
+    symbols = r'[çøłŋʃʒɪʌəθðɒβϕκπΩδ⅓℅⌘▲▼ⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫ]'
+
     # E_pun = u',.!?[]()<>""\'~:@#$¥%'
     # C_pun = u'，。！？【】（）《》“”‘~：＠＃＄￥％'
     # table = {ord(f): ord(t) for f, t in zip(C_pun, E_pun)}
@@ -25,7 +26,7 @@ def chinesepun2englishpun(string):
     #string = string.replace('/', '\\')
     #return string
 
-    E_pun = u'•••,!?“”[][][]()()<><>‘~:::----@#$￥%||;=/~aaeeno2福出内'
+    E_pun = u'...,!?“”[][][]()()<><>‘~:::----@#$￥%||;=/~aaeeno2福出内'
     C_pun = u'·•●，！？「」【】〖〗［］（）〔〕〈〉＜＞\'~：ː∶—－─­＠＃＄￥％｜∣；＝／～ɑàéëñö₂褔岀內'
     #print(len(E_pun), len(C_pun))
     table = {ord(f): ord(t) for f, t in zip(C_pun, E_pun)}

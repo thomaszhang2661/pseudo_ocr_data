@@ -54,7 +54,7 @@ def crop_off_whitespace(image):
 
     # 动态计算阈值或固定阈值
     #threshold = np.max(image_array)
-    threshold = 100
+    threshold = 255
     # 计算每一行和列的灰度值之和
     horizontal_sum = np.sum(image_array < threshold, axis=1)
     vertical_sum = np.sum(image_array < threshold, axis=0)
@@ -73,8 +73,8 @@ def crop_off_whitespace(image):
     left, right = cols[0], cols[-1]
 
     # 计算适当的边距，避免裁剪掉内容
-    h_margin = max(2, int((bottom - top) * 0.05))  # 边距可以调整为5%
-    w_margin = max(2, int((right - left) * 0.05))  # 边距可以调整为5%
+    h_margin = max(1, int((bottom - top) * 0.01))  # 边距可以调整为5%
+    w_margin = max(1, int((right - left) * 0.01))  # 边距可以调整为5%
 
     top = max(0, top - h_margin)
     bottom = min(image_array.shape[0], bottom + h_margin)
@@ -101,13 +101,13 @@ font_size = 70
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected_hw/")
 #user_font_dir = "C:/Users/ThomasZhang/Downloads/办公常用字体-网盘"  #"/Volumes/Samsung SSD/字体/办公常用字体-网盘/"
 #user_font_dir = "D:/字体/selected_hw"
-user_font_dir =  "C:/Users/ThomasZhang/Desktop/selected_hw_1"
+user_font_dir = "/database/selected_hw/"
 #user_font_dir = os.path.expanduser("/Users/zhangjian/Downloads/free-font-master/assets/font/中文/selected/")
 
 # 定义用于保存生成图片的输出目录
 #output_dir = "../../pseudo_chinese_images_1213"
-output_dir = "C:/Users/ThomasZhang/PycharmProjects/single_font_250102/"  #"/Volumes/Samsung SSD/字体/1213_font/"
-
+#output_dir = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_1218/"  #"/Volumes/Samsung SSD/字体/1213_font/"
+output_dir = "/database/single_font_1222/"
 os.makedirs(output_dir, exist_ok=True)
 # 获取系统中已安装的字体列表
 installed_fonts = matplotlib.font_manager.findSystemFonts(fontpaths=user_font_dir)
@@ -156,62 +156,120 @@ print(f"有效字体数量: {len(valid_fonts)}")
 
 # 遍历文本列表，为每个文本使用不同的字体生成图片并保存
 
+# for ind_f, font in tqdm(enumerate(valid_fonts), total=len(valid_fonts)):
+#     for text_group, index in texts_dict.items():
+#         sub_file_name = int(index)
+#         sub_file_name = f"{sub_file_name:05d}"
+#         sub_file_name = sub_file_name+"_fnt"
+#         sub_path = output_dir + str(sub_file_name) #os.path.join(output_dir, str(sub_file_name))
+#         os.makedirs(sub_path, exist_ok=True)
+#         sub_path = sub_path + '/'
+#         #text_width, text_height = font[0].getsize(text_group)
+#         text_width, text_height = font[0].getbbox(text_group)[2] - font[0].getbbox(text_group)[0], \
+#                                  font[0].getbbox(text_group)[3] - font[0].getbbox(text_group)[1]
+
+#         # 动态计算图片尺寸
+#         if text_width == 0 or text_height == 0:
+#             continue
+
+#         # 调整图片尺寸以适应文本
+#         image_width = text_width + 150
+#         image_height = text_height + 150
+#         image = Image.new("RGB", (image_width, image_height), color="white")
+#         draw = ImageDraw.Draw(image)
+
+#         # 计算文本位置
+#         x = (image_width - text_width) / 2
+#         y = (image_height - text_height) / 2
+
+#         # 绘制文本
+#         # if 语句确保字体没问题，否则可能出现空白图片
+#         # if font[0].getsize(text_group)[0] > 0:
+#         #     draw.text((x, y), text_group, fill="black", font=font[0])
+#         # else:
+#         #     continue
+#         bbox = font[0].getbbox(text_group)
+#         text_width = bbox[2] - bbox[0]  # right - left
+
+#         if text_width > 0:
+#             draw.text((x, y), text_group, fill="black", font=font[0])
+#         else:
+#             continue
+
+#         if not is_blank_image(image):
+#             # 保存图像
+#             # 剪裁四周多余空白
+#             font_name = font[1].replace(' ', '_').split("\\")[-1]
+#             #image.save(f'{sub_path}{font_name}_{ind_f}_{index}_origin.jpg')
+            
+#             try:
+#                 image.save(f'{sub_path}origin_{font_name}_{ind_f}_{index}.jpg')
+#             except Exception as e:
+#                 print(f"Error saving image: {image_filename}")
+#                 print(e)
+
+#             image = crop_off_whitespace(image)
+#             width, height = image.size
+#             #ratio = min(font_size/width, font_size/height)
+#             #image = image.resize((int(width*ratio), int(height*ratio)), Image.ANTIALIAS)
+#             image_filename =f'{sub_path}{font_name}_{ind_f}_{index}.jpg' #os.path.join(sub_path, f"{font[1]}_{ind_f}_{index}.jpg")
+
+#             try:
+#                 image.save(image_filename)
+#             except Exception as e:
+#                 print(f"Error saving image: {image_filename}")
+#                 print(e)
+
+#             # 打印生成的信息
+#             #print(f"生成图像 {image_filename}，文本: {text_group}，字体: {font[1]}")
+
+
 for ind_f, font in tqdm(enumerate(valid_fonts), total=len(valid_fonts)):
     for text_group, index in texts_dict.items():
-        sub_file_name = int(index)
-        sub_file_name = f"{sub_file_name:05d}"
-        sub_file_name = sub_file_name+"_fnt"
-        sub_path = output_dir + str(sub_file_name) #os.path.join(output_dir, str(sub_file_name))
+        sub_file_name = f"{int(index):05d}_fnt"
+        sub_path = os.path.join(output_dir, sub_file_name)
         os.makedirs(sub_path, exist_ok=True)
-        sub_path = sub_path + '/'
-        #text_width, text_height = font[0].getsize(text_group)
-        text_width, text_height = font[0].getbbox(text_group)[2] - font[0].getbbox(text_group)[0], \
-                                 font[0].getbbox(text_group)[3] - font[0].getbbox(text_group)[1]
 
-        # 动态计算图片尺寸
+        # 获取文本边框信息
+        bbox = font[0].getbbox(text_group)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+
+        # 如果文本宽度或高度为0，跳过该文本
         if text_width == 0 or text_height == 0:
             continue
 
-        # 调整图片尺寸以适应文本
+        # 动态调整图像大小
         image_width = text_width + 300
         image_height = text_height + 300
         image = Image.new("RGB", (image_width, image_height), color="white")
         draw = ImageDraw.Draw(image)
 
-        # 计算文本位置
+        # 计算文本位置，居中显示
         x = (image_width - text_width) / 2
         y = (image_height - text_height) / 2
 
         # 绘制文本
-        # if 语句确保字体没问题，否则可能出现空白图片
-        # if font[0].getsize(text_group)[0] > 0:
-        #     draw.text((x, y), text_group, fill="black", font=font[0])
-        # else:
-        #     continue
-        bbox = font[0].getbbox(text_group)
-        text_width = bbox[2] - bbox[0]  # right - left
-
         if text_width > 0:
             draw.text((x, y), text_group, fill="black", font=font[0])
         else:
             continue
 
+        # 如果图像非空白，保存图像
         if not is_blank_image(image):
-            # 保存图像
-            # 剪裁四周多余空白
             font_name = font[1].replace(' ', '_').split("\\")[-1]
-            #image.save(f'{sub_path}{font_name}_{ind_f}_{index}_origin.jpg')
-            image = crop_off_whitespace(image)
-            width, height = image.size
-            #ratio = min(font_size/width, font_size/height)
-            #image = image.resize((int(width*ratio), int(height*ratio)), Image.ANTIALIAS)
+            # try:
+            #     image.save(os.path.join(sub_path, f'{font_name}_origin_{ind_f}_{index}.jpg'))
+            # except Exception as e:
+            #     print(f"Error saving image: {sub_path}origin_{font_name}_{ind_f}_{index}.jpg")
+            #     print(e)
 
-            image_filename =f'{sub_path}{font_name}_{ind_f}_{index}.jpg' #os.path.join(sub_path, f"{font[1]}_{ind_f}_{index}.jpg")
+            # 剪裁空白部分
+            image = crop_off_whitespace(image)
+            image_filename = os.path.join(sub_path, f'{font_name}_{ind_f}_{index}.jpg')
+
             try:
                 image.save(image_filename)
             except Exception as e:
                 print(f"Error saving image: {image_filename}")
                 print(e)
-
-            # 打印生成的信息
-            #print(f"生成图像 {image_filename}，文本: {text_group}，字体: {font[1]}")

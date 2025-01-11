@@ -63,7 +63,7 @@ def load_background_images(background_directory):
     return background_images
 
 
-def add_background_to_image(gray_image, background_image, threshold=100):
+def add_background_to_image(gray_image, background_image, threshold=150):
     # 将灰度图像转换为 numpy 数组
     image_array = np.array(gray_image)
 
@@ -295,7 +295,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     # 整幅图片
     image = Image.new('L', ((width_goal + off_set_max)*len(line_chars), int(height_goal * 1.5)), 255)
 
-    #gamma_value = 0.4  # 可以调整此值，0.5效果通常较为明显
+    gamma_value = 0.2  # 可以调整此值，0.5效果通常较为明显
     # 随机选择一次所有字符的图像
     selected_images = []
     for i_c, char in enumerate(line_chars):
@@ -318,7 +318,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
                 print(f"Error: {e}. Length of char_images: {len(char_images)}, index_font: {index_font}")
 
             # 调整伽马值，尝试低于1.0的值来增加黑色区域的深度
-            #selected_image = adjust_gamma(selected_image, gamma=gamma_value)
+            selected_image = adjust_gamma(selected_image, gamma=gamma_value)
             selected_images.append(selected_image)
         # elif char in mnist_data:
         #     char_images = mnist_data[char]
@@ -520,8 +520,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
         ratio = 64 / h_l
         larger_image = larger_image.resize((int(w_l*ratio), int(h_l*ratio)), Image.Resampling.LANCZOS)
 
-    random_lower = random.randint(0, 60)
-    larger_image = adjust_text_brightness(larger_image, lower=random_lower)
+
     background = random.choice(background_images)
 
     #将背景图resize到目标大小
@@ -532,8 +531,20 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     else:
         # 截取需要的部分
         background = background.crop((0, 0, larger_image.size[0], larger_image.size[1]))
+    
+
+    # 检查图片
+    timestamp = int(time.time())
+    output_sub = os.path.join(output_path,str(i_font+num_font_off_set+PREVIOUS_FONT_INDEX))
+    os.makedirs(output_sub, exist_ok=True)
+    output_temp = os.path.join(output_sub, f'{timestamp}_{i_font+num_font_off_set+PREVIOUS_FONT_INDEX}_{index_line}_test.jpg')
+    
+    
+    larger_image.save(output_temp)
     final_image = add_background_to_image(larger_image, background)
-    final_image = final_image.filter(ImageFilter.GaussianBlur(radius=random.uniform(0, 0.8)))  # 这里可以调整radius来控制模糊程度
+    #random_lower = random.randint(0, 50)
+    #larger_image = adjust_text_brightness(larger_image, lower=random_lower)
+    final_image = final_image.filter(ImageFilter.GaussianBlur(radius=random.uniform(0.5, 1)))  # 这里可以调整radius来控制模糊程度
 
     larger_image = final_image
 

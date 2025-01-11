@@ -43,12 +43,10 @@ problem_font=["立体铁山硬笔行楷简",
               "方正瘦金书繁体",
               "钟齐流江硬笔草体",
               "变更大夏(1)",
-              "陈氏家族体(1)",
-              "华康金文体W3",
-              "长城行楷体---【大湾区数据】"]
+              "陈氏家族体(1)"]
 
-path_font = "C:/Users/ThomasZhang/PycharmProjects/single_font_250102"
-
+# path_font = "C:/Users/ThomasZhang/PycharmProjects/pseudo_chinese_images_1231"
+path_font = "/database/single_font_1222"
 
 for root,dirs,files in tqdm(os.walk(path_font),total=len(os.listdir(path_font))):
     for file_name in files:

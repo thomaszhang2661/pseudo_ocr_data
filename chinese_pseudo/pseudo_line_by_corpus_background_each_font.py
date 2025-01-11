@@ -40,7 +40,6 @@ current_working_directory = os.getcwd()
 
 print("当前工作路径是:", current_working_directory)
 
-length_max = 15
 
 PREVIOUS_FONT_INDEX = 830
 
@@ -63,33 +62,69 @@ def load_background_images(background_directory):
     return background_images
 
 
+# def add_background_to_image(gray_image, background_image, threshold=100):
+#     # 将灰度图像转换为 numpy 数组
+#     image_array = np.array(gray_image)
+
+#     # 计算每一行和每一列的灰度值之和
+#     horizontal_sum = np.sum(image_array < threshold, axis=1)
+#     vertical_sum = np.sum(image_array < threshold, axis=0)
+
+#     # 创建一个和原图相同大小的空白图像，先填充背景
+#     background_array = np.array(background_image)
+
+#     # 确保背景图像和灰度图像的大小一致
+#     if background_array.shape != image_array.shape:
+#         # 如果背景图像大小与目标图像不同，需要调整背景图像的大小
+#         background_image = background_image.resize(gray_image.size)
+#         background_array = np.array(background_image)
+
+#     # 生成最终的图像：先将背景图像复制
+#     final_image_array = np.copy(background_array)
+
+#     # 将前景区域覆盖到背景图像上（即根据灰度值小于阈值的部分，把前景覆盖过去）
+#     final_image_array[image_array < threshold] = image_array[image_array < threshold]
+
+#     # 将 final_image_array 转换为 PIL 图像
+#     final_image = Image.fromarray(final_image_array)
+
+#     return final_image
+
+
+
 def add_background_to_image(gray_image, background_image, threshold=100):
     # 将灰度图像转换为 numpy 数组
     image_array = np.array(gray_image)
 
-    # 计算每一行和每一列的灰度值之和
-    horizontal_sum = np.sum(image_array < threshold, axis=1)
-    vertical_sum = np.sum(image_array < threshold, axis=0)
+    # 获取前景图像的尺寸
+    image_width, image_height = gray_image.size
+    background_width, background_height = background_image.size
 
-    # 创建一个和原图相同大小的空白图像，先填充背景
-    background_array = np.array(background_image)
-
-    # 确保背景图像和灰度图像的大小一致
-    if background_array.shape != image_array.shape:
-        # 如果背景图像大小与目标图像不同，需要调整背景图像的大小
-        background_image = background_image.resize(gray_image.size)
+    # 如果背景图像的尺寸小于前景图像的尺寸，则调整背景图像的尺寸
+    if background_width < image_width or background_height < image_height:
+        # Resize the background image to at least match the size of the gray image
+        background_image = background_image.resize((image_width, image_height), Image.Resampling.LANCZOS)
+        background_array = np.array(background_image)
+    elif background_height != image_height:
+        background_image = background_image.resize((background_width, image_height), Image.Resampling.LANCZOS)
+        background_array = np.array(background_image)
+    else:
+        # 如果背景图像比前景图像大，保持背景图像尺寸，前景图像粘贴在背景的左上角
         background_array = np.array(background_image)
 
-    # 生成最终的图像：先将背景图像复制
+    # 创建一个背景图像副本
     final_image_array = np.copy(background_array)
 
-    # 将前景区域覆盖到背景图像上（即根据灰度值小于阈值的部分，把前景覆盖过去）
-    final_image_array[image_array < threshold] = image_array[image_array < threshold]
+    # 将前景图像的灰度值小于阈值的部分覆盖到背景图像上
+    final_image_array[:image_height, :image_width][image_array < threshold] = image_array[image_array < threshold]
 
-    # 将 final_image_array 转换为 PIL 图像
+    # 将合成后的图像数组转换回 PIL 图像
     final_image = Image.fromarray(final_image_array)
 
     return final_image
+
+
+
 
 punct_dict = {}
 with open('./标点符号.txt', 'r', encoding='utf-8') as f:
@@ -169,7 +204,7 @@ def adjust_text_brightness(image, lower=30):
     image_array = np.clip(image_array, lower, 255)
     return Image.fromarray(image_array)
 
-def crop_off_whitespace(image,direction=2):
+def crop_off_whitespace(image,direction="all"):
     # 转换为NumPy数组
     # 将图像转换为灰度
     gray_image = image.convert('L')
@@ -180,20 +215,27 @@ def crop_off_whitespace(image,direction=2):
     horizontal_sum = np.sum(image_array < threshold, axis=1)
     vertical_sum = np.sum(image_array < threshold, axis=0)
 
-    if direction == 2:
+    if direction == "all":
         # 找到上边界和下边界
-        top = np.argmax(horizontal_sum > 0)
-        bottom = len(horizontal_sum) - np.argmax(horizontal_sum[::-1] > 0)
+        top = np.argmax(horizontal_sum > 0)  - random.randint(0, 5)
+        bottom = len(horizontal_sum) - np.argmax(horizontal_sum[::-1] > 0) + random.randint(0, 5)
 
         # 找到左边界和右边界
-        left = np.argmax(vertical_sum > 0)
-        right = len(vertical_sum) - np.argmax(vertical_sum[::-1] > 0)
-    else:
+        left = np.argmax(vertical_sum > 0)  - random.randint(0, 5)
+        right = len(vertical_sum) - np.argmax(vertical_sum[::-1] > 0) + random.randint(0, 5)
+    elif direction == "x":
         # 找到左边界和右边界
-        left = np.argmax(vertical_sum > 0)
-        right = len(vertical_sum) - np.argmax(vertical_sum[::-1] > 0)
+        left = np.argmax(vertical_sum > 0) - random.randint(0, 5)
+        right = len(vertical_sum) - np.argmax(vertical_sum[::-1] > 0) + random.randint(0, 5)
         top = 0
         bottom = h
+    elif direction == "y":
+        # 找到上边界和下边界
+        top = np.argmax(horizontal_sum > 0) - random.randint(0, 5)
+        bottom = len(horizontal_sum) - np.argmax(horizontal_sum[::-1] > 0) + random.randint(0, 5)
+        left = 0
+        right = w
+
 
     # # 找到上边界和下边界
     # top = np.argmax(horizontal_sum > 0)
@@ -204,7 +246,7 @@ def crop_off_whitespace(image,direction=2):
     # right = len(vertical_sum) - np.argmax(vertical_sum[::-1] > 0)
 
     # 裁剪图像
-    cropped_image = image.crop((left, top, right, bottom))
+    cropped_image = image.crop((max(left,0), max(0,top), min(right,w), min(bottom,h)))
     return cropped_image
 
 def load_local_images(image_directory):
@@ -236,7 +278,7 @@ def load_local_images(image_directory):
 
 
 
-def load_local_images_pub(image_directory,num_font,num_font_off_set):
+def load_local_images_pub(image_directory,num_font,num_font_off_set,font_list):
     '''加载自动化所的单个手写字体'''
     zidonghua_data = {}
 
@@ -260,24 +302,41 @@ def load_local_images_pub(image_directory,num_font,num_font_off_set):
         # 获取该文件夹中所有文件名
         files = os.listdir(folder_path)
         #files = [entry.name for entry in os.scandir(folder_path) if entry.is_file()]
-        sorted_files = sorted(files, key=lambda x: x.split('.')[0])
-        if len(sorted_files) < num_font_off_set + num_font:
-            sorted_files = list(islice(cycle(sorted_files), num_font_off_set + num_font))
+        
+        
+        # sorted_files = sorted(files, key=lambda x: x.split('.')[0])
+        # if len(sorted_files) < num_font_off_set + num_font:
+        #     sorted_files = list(islice(cycle(sorted_files), num_font_off_set + num_font))
                 
-        files = sorted_files[num_font_off_set:num_font_off_set+num_font]
+        # files = sorted_files[num_font_off_set:num_font_off_set+num_font]
+        
+        
         #print(len(files),'len_sorted_files')
         # 初始化当前字符的图像数据列表
         zidonghua_data[word] = []
 
+        font_list_wanted = font_list[num_font_off_set:num_font_off_set+num_font]
         # 直接打开图像并转换为灰度图像，批量加载
-        for filename in files:
-            filepath = os.path.join(folder_path, filename)
-            try:
-                # 加载图像并转换为灰度模式
-                image_data = Image.open(filepath).convert('L')
-                zidonghua_data[word].append(np.array(image_data))  # 存储图像数据
-            except Exception as e:
-                print(f"Error loading image {filepath}: {e}")
+        # for filename in files:
+            
+        #     if filename.split('_')[0] not in font_list_wanted:
+        #         continue
+        
+        # 按照 font_list 顺序加载图像
+        for font in font_list_wanted:
+            for filename in files:
+                if font in filename:
+                    filepath = os.path.join(folder_path, filename)
+                    try:
+                        # 加载图像并转换为灰度模式
+                        image_data = Image.open(filepath).convert('L')
+                        zidonghua_data[word].append(np.array(image_data))  # 存储图像数据
+                    except Exception as e:
+                        print(f"Error loading image {filepath}: {e}")
+                    break
+            else:
+                zidonghua_data[word].append(None)
+
     zidonghua_data[" "] = [np.ones((70, 70)) * 255]  # 空格
     return zidonghua_data
 
@@ -312,6 +371,9 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
             try:
                 if char == " ":
                     selected_image = char_images[0]
+                elif char_images[index_font] is None or len(char_images[index_font]) == 0:
+                    list_of_text[i_c] = " "
+                    selected_image = np.ones((height_goal, width_goal)) * 255
                 else:
                     selected_image = char_images[index_font]
             except IndexError as e:
@@ -487,18 +549,18 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
         image.paste(single_image, paste_position)
 
     # 切左右
-    image = crop_off_whitespace(image, direction=1)
+    image = crop_off_whitespace(image, direction='x')
     width, height = image.size
-    draw = ImageDraw.Draw(image)
-    if random.choice(range(3)) != 0:
-        underline_y1 = height_goal - random.randint(0, 10)  # 下划线的位置
-        underline_y2 = height_goal - random.randint(0, 10)  # 下划线的位置
+    # draw = ImageDraw.Draw(image)
+    # if random.choice(range(3)) != 0:
+    #     underline_y1 = height_goal - random.randint(0, 10)  # 下划线的位置
+    #     underline_y2 = height_goal - random.randint(0, 10)  # 下划线的位置
 
-        draw.line([(0, underline_y1), (width, underline_y2)], fill=0, width=random.randint(2,5))
+    #     draw.line([(0, underline_y1), (width, underline_y2)], fill=0, width=random.randint(3,5))
 
-    # 切边
-    image = crop_off_whitespace(image)
-    width, height = image.size
+    # # 切边
+    # image = crop_off_whitespace(image)
+    # width, height = image.size
 
 
 
@@ -525,26 +587,71 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     background = random.choice(background_images)
 
     #将背景图resize到目标大小
-    if background.size[0] < larger_image.size[0] :
-        background = background.resize((larger_image.size[0], background.size[1]),  Image.Resampling.LANCZOS)
+    # 处理宽度 这里面考虑填空题右侧留空的情况统一向右扩展 像素200-550宽度
+    width_blank = random.randint(200, 550)
+    final_width = int(max(width_blank, larger_image.size[1] + random.randint(0,100)))
+    # print('final_width',final_width)
+    # print(' background.size[0]',background.size[1])
+    if background.size[0] < final_width:
+        background = background.resize((final_width, background.size[1]),  Image.Resampling.LANCZOS)
+    # 处理高度
     elif background.size[1] < larger_image.size[1]:
         background = background.resize((background.size[0], larger_image.size[1]), Image.Resampling.LANCZOS)
     else:
-        # 截取需要的部分
-        background = background.crop((0, 0, larger_image.size[0], larger_image.size[1]))
+        # 截取需要的部分背景图片 随机截取
+        #background = background.crop((0, 0, larger_image.size[0], larger_image.size[1]))
+        x_start = random.randint(0, background.size[0] - final_width)
+        y_start = random.randint(0, background.size[1] - larger_image.size[1])
+        background = background.crop((x_start,
+                                      y_start,
+                                      x_start + final_width,
+                                      y_start + larger_image.size[1]))
     final_image = add_background_to_image(larger_image, background)
-    final_image = final_image.filter(ImageFilter.GaussianBlur(radius=random.uniform(0, 0.8)))  # 这里可以调整radius来控制模糊程度
+    final_image = crop_off_whitespace(final_image,direction="y")
 
+    if debug:
+        #保存图片debug
+        output_sub = os.path.join(output_path,str(i_font+num_font_off_set+PREVIOUS_FONT_INDEX))
+        os.makedirs(output_sub, exist_ok=True)
+        #print(output_sub)
+        output_file = os.path.join(output_sub, f'0000_{i_font+num_font_off_set+PREVIOUS_FONT_INDEX}_{index_line}_background.jpg')
+        #output_file = os.path.join(output_sub, f'0000_background.jpg')
+
+        #print(output_file)
+        final_image.save(output_file)
+    
+
+     # 这里可以调整radius来控制模糊程度
+    final_image = final_image.filter(ImageFilter.GaussianBlur(radius=random.uniform(0, 0.8))) 
+
+    #===================
+    #添加下划线
+    width, height = final_image.size
+    draw = ImageDraw.Draw(final_image)
+    if random.choice(range(3)) != 0:
+        underline_y1 = height - random.randint(0, 10)  # 下划线的位置
+        underline_y2 = height - random.randint(0, 10)  # 下划线的位置
+
+        draw.line([(0, underline_y1), (width, underline_y2)], fill=0, width=random.randint(2,4))
+
+    # 切边
+    #final_image = crop_off_whitespace(final_image)
+    width, height = final_image.size
+    #===================
     larger_image = final_image
 
     timestamp = int(time.time())
     text_new = "".join(list_of_text)
+
     output_sub = os.path.join(output_path,str(i_font+num_font_off_set+PREVIOUS_FONT_INDEX))
     os.makedirs(output_sub, exist_ok=True)
     #print(output_sub)
     output_file = os.path.join(output_sub, f'{timestamp}_{i_font+num_font_off_set+PREVIOUS_FONT_INDEX}_{index_line}.jpg')
 
     try:
+        # 如果标注内容为空，不保存
+        if text_new.strip() == "":
+            return
         larger_image.save(output_file)
         label_content[f'{timestamp}_{i_font+num_font_off_set+PREVIOUS_FONT_INDEX}_{index_line}'] = text_new
 
@@ -562,24 +669,30 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
 
 if __name__ == '__main__':
     random.seed(40)
-    # 总共236 字体
-    num_font = 10 #字体数量
-    num_font_off_set = 180
-
-    user_font_dir = "C:/Users/ThomasZhang/Desktop/selected_hw_1"
-
+    # 总共235 字体
+    num_font = 6 #字体数量
+    num_font_off_set = 230
+    debug = False
+    user_font_dir = "/database/selected_hw_1"
+    #获取字体名称列表
+    font_style_list = []
+    for root, dirs, files in os.walk(user_font_dir):
+        for file in files:
+            font_style_list.append(file.split(".")[0])
+    print(font_style_list)
+    print(len(font_style_list))
     #image_directory = './single_font/pseudo_chinese_images_1111_checked'
     #image_font_directory = '../../pseudo_chinese_images_1111_checked/'
     #image_font_directory = '../../pseudo_chinese_images_1111_checked/'
     #image_pub_directory = './chinese_data1018/pic_chinese_char'
     #image_pub_directory = '../../gnt_all/'.replace('/', os.sep)
-    image_pub_directory = '/database/single_font_250101/'.replace('/', os.sep)
+    image_pub_directory = '/database/single_font_250102_new/'.replace('/', os.sep)
     #image_pub_directory = r"C:\Users\ThomasZhang\PycharmProjects\pseudo_chinese_images_250101".replace("\\","/")
     
     #output_path = './Chinese-app-digital/data/data_train/'
     #output_path = f'./psudo_chinese_data/gen_line_print_data_1110/'
     #output_path = '../../psudo_chinese_data/gen_line_data_1210_delta/'.replace('/', os.sep)
-    output_path = '/database/gen_line_data_250101_font_new/'.replace('/', os.sep)
+    output_path = '/database/gen_line_data_250102_font_new/'.replace('/', os.sep)
     #output_path = r"C:\Users\ThomasZhang\PycharmProjects\gen_line_data_250101_font_new".replace("\\", "/")
 
     # 加载底图
@@ -596,7 +709,7 @@ if __name__ == '__main__':
     random_seq = True
 
     # 加载单个汉字图片
-    zidonghua_data = load_local_images_pub(image_pub_directory,num_font,num_font_off_set)
+    zidonghua_data = load_local_images_pub(image_pub_directory,num_font,num_font_off_set,font_style_list)
     
     #读取corpus #'all_chinese_dicts_standard.txt','all_english_dicts_standard.txt','xdhy_corpus2_standard.txt','xdhy_corpus_book.txt','xdhy_corpus_book.txt'
     corpus_list = ['all_corpus_standard.txt']
@@ -621,6 +734,7 @@ if __name__ == '__main__':
         # 输出labels
         output_sub = os.path.join(output_path,str(i_font+num_font_off_set+PREVIOUS_FONT_INDEX))
         os.makedirs(output_sub, exist_ok=True)
+        print(output_sub)
         label_file = os.path.join(output_sub,'label.json')
         with open(label_file, 'w', encoding='utf-8') as f:
             json.dump(label_content, f, ensure_ascii=False, indent=4)

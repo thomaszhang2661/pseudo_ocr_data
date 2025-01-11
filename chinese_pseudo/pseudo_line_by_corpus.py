@@ -51,15 +51,15 @@ PREVIOUS_FONT_INDEX = 720
 
 
 # 读取字典
-char_dict = {}
-with open('./merged_dict.txt', 'r', encoding='utf-8') as f:
-    lenth_original = len(f.readlines())
-    for line in f:
-        char, code = line.strip().split(' : ')  # 按制表符分割
-        char_dict[char] = int(code)  # 将编码转换为整数
-    char_dict[" "] = lenth_original + 1
-    print("char_dict space",char_dict[" "])
-dict_list = list(char_dict.keys())
+# char_dict = {}
+# with open('./merged_dict.txt', 'r', encoding='utf-8') as f:
+#     lenth_original = len(f.readlines())
+#     for line in f:
+#         char, code = line.strip().split(' : ')  # 按制表符分割
+#         char_dict[char] = int(code)  # 将编码转换为整数
+#     char_dict[" "] = lenth_original + 1
+#     print("char_dict space",char_dict[" "])
+# dict_list = list(char_dict.keys())
 
 
 punct_dict = {}
@@ -123,31 +123,31 @@ def adjust_gamma(image, gamma=1.0):
 
 
 
-def generate_line_by_chinese_word(off_set, random_seq=False,length=1,):
-    # 用来处理单一逻辑的辅助函数
-    def process_result(result):
-        # 如果字符数大于20，随机截取连续的20个字符
-        if len(result) > length_max:
-            # 切割成词语（假设通过空格分隔）
-            line_list = result.split()
-            ratio = len("".join(line_list)) / len(line_list) # 计算比例
-            # 根据比例计算截取长度
-            result1 = random.sample(line_list, k=min(math.floor(length_max / ratio), len(line_list)))
-            result = ' '.join(result1)  # 连接成字符串
-        else:
-            # 如果字符数小于20，随机打乱字符
-            line_list = result.split()
-            random.shuffle(line_list)  # 打乱顺序
-            result = ' '.join(line_list)  # 连接成字符串
-        return result
+# def generate_line_by_chinese_word(off_set, random_seq=False,length=1,):
+#     # 用来处理单一逻辑的辅助函数
+#     def process_result(result):
+#         # 如果字符数大于20，随机截取连续的20个字符
+#         if len(result) > length_max:
+#             # 切割成词语（假设通过空格分隔）
+#             line_list = result.split()
+#             ratio = len("".join(line_list)) / len(line_list) # 计算比例
+#             # 根据比例计算截取长度
+#             result1 = random.sample(line_list, k=min(math.floor(length_max / ratio), len(line_list)))
+#             result = ' '.join(result1)  # 连接成字符串
+#         else:
+#             # 如果字符数小于20，随机打乱字符
+#             line_list = result.split()
+#             random.shuffle(line_list)  # 打乱顺序
+#             result = ' '.join(line_list)  # 连接成字符串
+#         return result
 
-    # 根据random_seq的值选择不同的生成逻辑
-    if random_seq:
-        result = random.choice(chinese_words)  # 随机选择一个
-    else:
-        result = chinese_words[off_set]  # 使用给定的偏移量选取
+#     # 根据random_seq的值选择不同的生成逻辑
+#     if random_seq:
+#         result = random.choice(chinese_words)  # 随机选择一个
+#     else:
+#         result = chinese_words[off_set]  # 使用给定的偏移量选取
 
-    return process_result(result)  # 处理并返回结果
+#     return process_result(result)  # 处理并返回结果
 
 def crop_off_whitespace(image,direction=2):
     # 转换为NumPy数组
@@ -497,7 +497,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     text_new = "".join(list_of_text)
     output_sub = os.path.join(output_path,str(i_font+num_font_off_set+PREVIOUS_FONT_INDEX))
     os.makedirs(output_sub, exist_ok=True)
-    print(output_sub)
+    #print(output_sub)
     output_file = os.path.join(output_sub,f'{timestamp}_{i_font+num_font_off_set+PREVIOUS_FONT_INDEX}_{index_line}.jpg')
 
     try:
@@ -531,7 +531,7 @@ if __name__ == '__main__':
     #output_path = f'./psudo_chinese_data/gen_line_print_data_1110/'
     #output_path = '../../psudo_chinese_data/gen_line_data_1210_delta/'.replace('/', os.sep)
     output_path = '/database/gen_line_data_250101_font_old/'.replace('/', os.sep)
-
+   
     #label_path = f'{output_path}labels/'.replace('/', os.sep)
     if not os.path.exists(output_path):
         os.makedirs(output_path,exist_ok=True)
@@ -568,6 +568,7 @@ if __name__ == '__main__':
             create_handwritten_number_image_pub_by_corpus(i_font, index_line, line, output_path, zidonghua_data)
         # 输出labels
         output_sub = os.path.join(output_path,str(i_font+num_font_off_set+PREVIOUS_FONT_INDEX))
+        print(output_sub)
         os.makedirs(output_sub, exist_ok=True)
         label_file = os.path.join(output_sub,'label.json')
         with open(label_file, 'w', encoding='utf-8') as f:
