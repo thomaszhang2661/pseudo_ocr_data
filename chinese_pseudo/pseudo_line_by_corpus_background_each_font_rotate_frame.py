@@ -45,10 +45,7 @@ print("当前工作路径是:", current_working_directory)
 
 
 
-from PIL import Image
-import os
 
-PI = 3.1415926
 
 def load_background_images(background_directory):
     """加载所有底图图像并转换为灰度图像"""
@@ -65,34 +62,6 @@ def load_background_images(background_directory):
                 print(f"Error loading background image {filepath}: {e}")
     return background_images
 
-
-# def add_background_to_image(gray_image, background_image, threshold=100):
-#     # 将灰度图像转换为 numpy 数组
-#     image_array = np.array(gray_image)
-
-#     # 计算每一行和每一列的灰度值之和
-#     horizontal_sum = np.sum(image_array < threshold, axis=1)
-#     vertical_sum = np.sum(image_array < threshold, axis=0)
-
-#     # 创建一个和原图相同大小的空白图像，先填充背景
-#     background_array = np.array(background_image)
-
-#     # 确保背景图像和灰度图像的大小一致
-#     if background_array.shape != image_array.shape:
-#         # 如果背景图像大小与目标图像不同，需要调整背景图像的大小
-#         background_image = background_image.resize(gray_image.size)
-#         background_array = np.array(background_image)
-
-#     # 生成最终的图像：先将背景图像复制
-#     final_image_array = np.copy(background_array)
-
-#     # 将前景区域覆盖到背景图像上（即根据灰度值小于阈值的部分，把前景覆盖过去）
-#     final_image_array[image_array < threshold] = image_array[image_array < threshold]
-
-#     # 将 final_image_array 转换为 PIL 图像
-#     final_image = Image.fromarray(final_image_array)
-
-#     return final_image
 
 
 
@@ -317,6 +286,33 @@ def load_local_images_pub(image_directory,num_font,num_font_off_set,font_list):
     zidonghua_data[" "] = [np.ones((70, 70)) * 255]  # 空格
     return zidonghua_data
 
+def add_border(image, border_width=3, border_color=0, width_goal=70):
+    """
+    为图片添加边框
+
+    :param image: 输入的PIL.Image图像
+    :param border_width: 边框的宽度
+    :param border_color: 边框的颜色 (默认为黑色: 0)
+    :return: 带有边框的图像
+    """
+    width, height = image.size
+    leave_blank = random.randint(1, 5)
+    new_image = Image.new("L", (width + 2 * (border_width + leave_blank) , height + 2 * (border_width + leave_blank)), 255)
+    new_image.paste(image, (border_width, border_width))
+
+    draw = ImageDraw.Draw(new_image)
+    draw.rectangle(
+        [(border_width, border_width), (width + border_width - 1, height + border_width - 1)],
+        outline=border_color,
+        width=border_width,
+    )
+    # 添加竖线
+    range_x = math.ceil(width/width_goal)
+    for x in range(1, range_x):
+        draw.line([(x*width_goal + border_width, border_width), (x*width_goal + border_width, height + border_width)],
+                  fill=border_color, width=border_width)
+    
+    return new_image
 
 def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_chars, output_path, zidonghua_data,
                                                   background_images=[],mnist_data=[]):
@@ -329,7 +325,9 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     off_set_max = 10
 
     # 整幅图片
-    image = Image.new('L', ((width_goal + off_set_max)*len(line_chars), int(height_goal * 1.5)), 255)
+    image = Image.new('L', (int((width_goal + off_set_max)*len(line_chars) * 1.5), int(height_goal * 1.5)), 255)
+    
+
 
     #gamma_value = 0.4  # 可以调整此值，0.5效果通常较为明显
     # 随机选择一次所有字符的图像
@@ -462,7 +460,9 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
 
         # 此处可加入随机性
         single_width, single_height = single_image.size
-        offset_x = random.randint(0, min(off_set_max, int(single_width)))
+        #offset_x = random.randint(0, min(off_set_max, int(single_width)))
+        offset_x = 0
+        #
         ##else:
         #    offset_x = single_width - cell_width
 
@@ -512,7 +512,9 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
 
         # paste_position = (i * cell_width + offset_x, offset_y)
         paste_position = (off_set_position + offset_x, offset_y)
-        off_set_position += offset_x + single_width
+        #off_set_position += offset_x + single_width
+        off_set_position += offset_x + width_goal
+        
         image.paste(single_image, paste_position)
 
     # 切左右
@@ -529,18 +531,46 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
     # image = crop_off_whitespace(image)
     # width, height = image.size
 
-    w_l, h_l = image.size
-    if h_l > 64:
-        ratio = 64 / h_l
-        image = image.resize((int(w_l*ratio), int(h_l*ratio)), Image.Resampling.LANCZOS)
+
 
     #random_lower = random.randint(0, 60)
     #larger_image = adjust_text_brightness(larger_image, lower=random_lower)
     image = crop_off_whitespace(image)
+    
+    #===================
+    #添加frame or 下划线
+    width, height = image.size
+    draw = ImageDraw.Draw(image)
+        
+    # 找到 final_image 颜色 25%的位置
+    # 将图像转换为灰度图像（如果需要，可以选择其他颜色空间）
+    image_gray = image.convert("L")  # 转换为灰度图像
+    # 将灰度图像转为 numpy 数组
+    image_array = np.array(image_gray)
+    # 计算图像的 25% 像素值
+    #color_10 = final_image_array.min() #int(np.percentile(final_image_array, 1))
+    color_under_line = int(max(0, min(255, image_array.min() + random.randint(-10, 10))))  # 加上一个随机偏移
+    
+    frame_choice = 1#random.choice(range(3))
 
+    if frame_choice == 0:
+        underline_y1 = height - random.randint(0, 10)  # 下划线的位置        
+        draw.line([(0, underline_y1), (width, underline_y1)]
+                  , fill=color_under_line, width=random.randint(1,4))
+        
+    elif frame_choice == 1:
+        # 加入边框
+        image = add_border(image, border_width=random.randint(2, 4), border_color=color_under_line, 
+                           width_goal=width_goal)
+    
+
+    w_l, h_l = image.size
+    if h_l > 64:
+        ratio = 64 / h_l
+        image = image.resize((int(w_l*ratio), int(h_l*ratio)), Image.Resampling.LANCZOS)
     larger_image = image
     # 对图片随机旋转角度
-    angle = random.randint(-3, 3)
+    angle = random.randint(-2, 2)
     larger_image = larger_image.rotate(angle, expand=True, fillcolor=255)
     background = random.choice(background_images)
     
@@ -584,31 +614,7 @@ def create_handwritten_number_image_pub_by_corpus(index_font, index_line, line_c
 
     final_image = add_background_to_image(larger_image, background)
     final_image = crop_off_whitespace(final_image,direction="y")
-    #===================
-    #添加下划线
 
-    if random.choice(range(3)) != 0:
-        width, height = final_image.size
-        draw = ImageDraw.Draw(final_image)
-        
-        # 找到 final_image 颜色 25%的位置
-        # 将图像转换为灰度图像（如果需要，可以选择其他颜色空间）
-        final_image_gray = final_image.convert("L")  # 转换为灰度图像
-        # 将灰度图像转为 numpy 数组
-        final_image_array = np.array(final_image_gray)
-        # 计算图像的 25% 像素值
-        #color_10 = final_image_array.min() #int(np.percentile(final_image_array, 1))
-        color_under_line = int(max(0, min(255, final_image_array.min() + random.randint(-10, 10))))  # 加上一个随机偏移
-        
-        underline_y1 = height - random.randint(0, 10)  # 下划线的位置        
-        # 使用 math.radians 来简化角度转换
-        angle_radians = math.radians(angle)
-        # 根据角度计算下划线结束位置
-        line_end_y = int(underline_y1 - (width * math.tan(angle_radians)))
-        
-        draw.line([(0, underline_y1), (width, line_end_y)]
-                  , fill=color_under_line, width=random.randint(2,4))
-    
     if debug:
         #保存图片debug
         output_sub = os.path.join(output_path,str(i_font+num_font_off_set+PREVIOUS_FONT_INDEX))
@@ -704,7 +710,7 @@ if __name__ == '__main__':
     #output_path = './Chinese-app-digital/data/data_train/'
     #output_path = f'./psudo_chinese_data/gen_line_print_data_1110/'
     #output_path = '../../psudo_chinese_data/gen_line_data_1210_delta/'.replace('/', os.sep)
-    output_path = '/database/gen_line_data_250112_font_new/'.replace('/', os.sep)
+    output_path = '/database/gen_line_data_250112_font_frame/'.replace('/', os.sep)
     #output_path = '/database/gen_line_data_250112_font_old/'.replace('/', os.sep)
 
     #output_path = r"C:\Users\ThomasZhang\PycharmProjects\gen_line_data_250101_font_new".replace("\\", "/")
